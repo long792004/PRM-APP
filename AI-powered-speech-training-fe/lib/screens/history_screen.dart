@@ -67,6 +67,8 @@ class HistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     final totalRecordings = _recordings.length;
     final avgScore =
         _recordings.isEmpty
@@ -86,10 +88,10 @@ class HistoryScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header
-        const Text(
+        Text(
           'Lịch sử luyện tập',
           style: TextStyle(
-            fontSize: 32,
+            fontSize: isMobile ? 24 : 32,
             fontWeight: FontWeight.bold,
             color: AppColors.gray900,
           ),
@@ -106,11 +108,11 @@ class HistoryScreen extends StatelessWidget {
 
         // Statistics Cards
         GridView.count(
-          crossAxisCount: 4,
+          crossAxisCount: isMobile ? 2 : 4,
           shrinkWrap: true,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 2,
+          childAspectRatio: isMobile ? 1.5 : 2,
           physics: const NeverScrollableScrollPhysics(),
           children: [
             _StatCard(
@@ -224,9 +226,11 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(isMobile ? 12 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -234,11 +238,15 @@ class _StatCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.gray600,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.gray600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Icon(
@@ -251,7 +259,7 @@ class _StatCard extends StatelessWidget {
             Text(
               value,
               style: TextStyle(
-                fontSize: 28,
+                fontSize: isMobile ? 24 : 28,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
@@ -311,6 +319,7 @@ class _RecordingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     final date = DateTime.parse(recording.createdAt);
     final dateStr = DateFormat('HH:mm dd/MM/yyyy').format(date);
     final durationStr =
@@ -321,13 +330,11 @@ class _RecordingCard extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              // Topic Info
-              Expanded(
-                child: Column(
+          child: isMobile
+              ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Topic Info
                     Text(
                       recording.topicTitle,
                       style: const TextStyle(
@@ -337,105 +344,196 @@ class _RecordingCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 8,
                       children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: AppColors.gray500,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.calendar_today, size: 14, color: AppColors.gray500),
+                            const SizedBox(width: 6),
+                            Text(dateStr, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+                          ],
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          dateStr,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.gray600,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.access_time, size: 14, color: AppColors.gray500),
+                            const SizedBox(width: 6),
+                            Text(durationStr, style: const TextStyle(fontSize: 13, color: AppColors.gray600)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Scores
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Overall: ${recording.feedback.overall.toStringAsFixed(1)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.success,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: AppColors.gray500,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          durationStr,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.gray600,
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _ScoreChip(label: 'Fluency', score: recording.feedback.fluency),
+                              _ScoreChip(label: 'Grammar', score: recording.feedback.grammar),
+                              _ScoreChip(label: 'Vocab', score: recording.feedback.vocabulary),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Actions
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(icon: const Icon(Icons.headphones), onPressed: () {}, tooltip: 'Nghe lại'),
+                        OutlinedButton.icon(
+                          onPressed: onTap,
+                          icon: const Icon(Icons.visibility, size: 18),
+                          label: const Text('Chi tiết'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           ),
                         ),
                       ],
                     ),
                   ],
-                ),
-              ),
-
-              // Scores
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
+                )
+              : Row(
                   children: [
-                    Text(
-                      'Overall: ${recording.feedback.overall.toStringAsFixed(1)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.success,
+                    // Topic Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            recording.topicTitle,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.gray900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 14,
+                                color: AppColors.gray500,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                dateStr,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.gray600,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: AppColors.gray500,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                durationStr,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.gray600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
+
+                    // Scores
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Overall: ${recording.feedback.overall.toStringAsFixed(1)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.success,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              _ScoreChip(
+                                label: 'Fluency',
+                                score: recording.feedback.fluency,
+                              ),
+                              const SizedBox(width: 8),
+                              _ScoreChip(
+                                label: 'Grammar',
+                                score: recording.feedback.grammar,
+                              ),
+                              const SizedBox(width: 8),
+                              _ScoreChip(
+                                label: 'Vocab',
+                                score: recording.feedback.vocabulary,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Actions
                     Row(
                       children: [
-                        _ScoreChip(
-                          label: 'Fluency',
-                          score: recording.feedback.fluency,
+                        IconButton(
+                          icon: const Icon(Icons.headphones),
+                          onPressed: () {},
+                          tooltip: 'Nghe lại',
                         ),
-                        const SizedBox(width: 8),
-                        _ScoreChip(
-                          label: 'Grammar',
-                          score: recording.feedback.grammar,
-                        ),
-                        const SizedBox(width: 8),
-                        _ScoreChip(
-                          label: 'Vocab',
-                          score: recording.feedback.vocabulary,
+                        OutlinedButton.icon(
+                          onPressed: onTap,
+                          icon: const Icon(Icons.visibility, size: 18),
+                          label: const Text('Xem chi tiết'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 16),
-
-              // Actions
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.headphones),
-                    onPressed: () {},
-                    tooltip: 'Nghe lại',
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: onTap,
-                    icon: const Icon(Icons.visibility, size: 18),
-                    label: const Text('Xem chi tiết'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );

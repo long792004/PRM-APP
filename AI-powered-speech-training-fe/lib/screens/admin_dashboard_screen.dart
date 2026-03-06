@@ -7,14 +7,16 @@ class AdminDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header
-        const Text(
+        Text(
           'Dashboard',
           style: TextStyle(
-            fontSize: 32,
+            fontSize: isMobile ? 24 : 32,
             fontWeight: FontWeight.bold,
             color: AppColors.gray900,
           ),
@@ -31,11 +33,11 @@ class AdminDashboardScreen extends StatelessWidget {
 
         // Statistics Cards
         GridView.count(
-          crossAxisCount: 4,
+          crossAxisCount: isMobile ? 2 : 4,
           shrinkWrap: true,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 2,
+          childAspectRatio: isMobile ? 1.5 : 2,
           physics: const NeverScrollableScrollPhysics(),
           children: const [
             _MetricCard(
@@ -131,6 +133,8 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -140,12 +144,16 @@ class _MetricCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.gray600,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.gray600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Icon(
@@ -159,7 +167,7 @@ class _MetricCard extends StatelessWidget {
             Text(
               value,
               style: TextStyle(
-                fontSize: 32,
+                fontSize: isMobile ? 24 : 32,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
@@ -208,6 +216,8 @@ class _WeeklyActivityChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
@@ -295,7 +305,7 @@ class _WeeklyActivityChart extends StatelessWidget {
               BarChartRodData(
                 toY: entry.value,
                 color: AppColors.primary,
-                width: 32,
+                width: isMobile ? 16 : 32,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(4),
                 ),

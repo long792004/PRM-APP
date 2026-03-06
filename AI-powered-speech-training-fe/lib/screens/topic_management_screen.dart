@@ -97,48 +97,87 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header
-        Row(
-          children: [
-            const Expanded(
-              child: Column(
+        isMobile
+            ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Quản lý Topics',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.gray900,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     'Tạo và quản lý các chủ đề luyện nói',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       color: AppColors.gray600,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showTopicDialog(),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Tạo Topic mới'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Quản lý Topics',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.gray900,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Tạo và quản lý các chủ đề luyện nói',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.gray600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => _showTopicDialog(),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Tạo Topic mới'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () => _showTopicDialog(),
-              icon: const Icon(Icons.add),
-              label: const Text('Tạo Topic mới'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 24),
 
         // Topics List
@@ -196,33 +235,37 @@ class _TopicManagementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     final date = DateTime.parse(topic.createdAt);
     final dateStr = DateFormat('dd-MM-yyyy').format(date);
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 12,
+                        runSpacing: 8,
                         children: [
                           Text(
                             topic.title,
-                            style: const TextStyle(
-                              fontSize: 20,
+                            style: TextStyle(
+                              fontSize: isMobile ? 18 : 20,
                               fontWeight: FontWeight.bold,
                               color: AppColors.gray900,
                             ),
                           ),
-                          const SizedBox(width: 12),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -254,17 +297,19 @@ class _TopicManagementCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  onPressed: onEdit,
-                  tooltip: 'Chỉnh sửa',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: onDelete,
-                  color: AppColors.error,
-                  tooltip: 'Xóa',
-                ),
+                if (!isMobile) ...[
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined),
+                    onPressed: onEdit,
+                    tooltip: 'Chỉnh sửa',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: onDelete,
+                    color: AppColors.error,
+                    tooltip: 'Xóa',
+                  ),
+                ]
               ],
             ),
             const SizedBox(height: 16),
@@ -347,6 +392,7 @@ class _TopicManagementCard extends StatelessWidget {
 
             // Footer
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Tạo ngày: $dateStr',
@@ -355,6 +401,22 @@ class _TopicManagementCard extends StatelessWidget {
                     color: AppColors.gray500,
                   ),
                 ),
+                if (isMobile)
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                        onPressed: onEdit,
+                        tooltip: 'Chỉnh sửa',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        onPressed: onDelete,
+                        color: AppColors.error,
+                        tooltip: 'Xóa',
+                      ),
+                    ],
+                  ),
               ],
             ),
           ],

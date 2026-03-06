@@ -11,6 +11,9 @@ class RoleSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -27,36 +30,36 @@ class RoleSelectionScreen extends StatelessWidget {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(isMobile ? 16 : 24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Header
-                  const Icon(
+                  Icon(
                     Icons.mic_rounded,
-                    size: 64,
+                    size: isMobile ? 48 : 64,
                     color: AppColors.primary,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: isMobile ? 8 : 16),
+                  Text(
                     'AI Speaking Practice',
                     style: TextStyle(
-                      fontSize: 40,
+                      fontSize: isMobile ? 28 : 40,
                       fontWeight: FontWeight.bold,
                       color: AppColors.gray900,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Luyện nói và nhận đánh giá từ AI',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: isMobile ? 14 : 18,
                       color: AppColors.gray600,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 48),
+                  SizedBox(height: isMobile ? 24 : 48),
 
                   // Role Cards
                   ConstrainedBox(
@@ -64,32 +67,16 @@ class RoleSelectionScreen extends StatelessWidget {
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final isWide = constraints.maxWidth > 600;
-                        return Flex(
-                          direction: isWide ? Axis.horizontal : Axis.vertical,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // User Card
-                            isWide
-                                ? Expanded(
-                                    child: _RoleCard(
-                                      icon: Icons.person_rounded,
-                                      iconColor: AppColors.primary,
-                                      iconBgColor: AppColors.primary.withOpacity(0.1),
-                                      title: 'User',
-                                      description:
-                                          'Luyện tập speaking với các topic được giao và nhận feedback từ AI',
-                                      features: const [
-                                        '✓ Chọn topics luyện tập',
-                                        '✓ Ghi âm và nhận AI feedback',
-                                        '✓ Xem lịch sử và theo dõi tiến độ',
-                                        '✓ Đánh giá chi tiết từng kỹ năng',
-                                      ],
-                                      buttonText: 'Bắt đầu với User',
-                                      onTap: () => onRoleSelected('user'),
-                                    ),
-                                  )
-                                : _RoleCard(
+                      // Layout the cards manually
+                      final cardsContent = Flex(
+                        direction: isWide ? Axis.horizontal : Axis.vertical,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // User Card
+                          isWide
+                              ? Expanded(
+                                  child: _RoleCard(
                                     icon: Icons.person_rounded,
                                     iconColor: AppColors.primary,
                                     iconBgColor: AppColors.primary.withOpacity(0.1),
@@ -105,32 +92,31 @@ class RoleSelectionScreen extends StatelessWidget {
                                     buttonText: 'Bắt đầu với User',
                                     onTap: () => onRoleSelected('user'),
                                   ),
-                            if (isWide)
-                              const SizedBox(width: 24)
-                            else
-                              const SizedBox(height: 24),
-                            // Admin Card
-                            isWide
-                                ? Expanded(
-                                    child: _RoleCard(
-                                      icon: Icons.settings_rounded,
-                                      iconColor: AppColors.secondary,
-                                      iconBgColor: AppColors.secondary.withOpacity(0.1),
-                                      title: 'Admin',
-                                      description:
-                                          'Quản lý topics, theo dõi hoạt động và hiệu suất của users',
-                                      features: const [
-                                        '✓ Tạo và quản lý topics',
-                                        '✓ Dashboard thống kê',
-                                        '✓ Theo dõi hiệu suất users',
-                                        '✓ Phân tích xu hướng học tập',
-                                      ],
-                                      buttonText: 'Bắt đầu với Admin',
-                                      onTap: () => onRoleSelected('admin'),
-                                      isOutlined: true,
-                                    ),
-                                  )
-                                : _RoleCard(
+                                )
+                              : _RoleCard(
+                                  icon: Icons.person_rounded,
+                                  iconColor: AppColors.primary,
+                                  iconBgColor: AppColors.primary.withOpacity(0.1),
+                                  title: 'User',
+                                  description:
+                                      'Luyện tập speaking với các topic được giao và nhận feedback từ AI',
+                                  features: const [
+                                    '✓ Chọn topics luyện tập',
+                                    '✓ Ghi âm và nhận AI feedback',
+                                    '✓ Xem lịch sử và theo dõi tiến độ',
+                                    '✓ Đánh giá chi tiết từng kỹ năng',
+                                  ],
+                                  buttonText: 'Bắt đầu với User',
+                                  onTap: () => onRoleSelected('user'),
+                                ),
+                          if (isWide)
+                            const SizedBox(width: 24)
+                          else
+                            const SizedBox(height: 24),
+                          // Admin Card
+                          isWide
+                              ? Expanded(
+                                  child: _RoleCard(
                                     icon: Icons.settings_rounded,
                                     iconColor: AppColors.secondary,
                                     iconBgColor: AppColors.secondary.withOpacity(0.1),
@@ -147,9 +133,29 @@ class RoleSelectionScreen extends StatelessWidget {
                                     onTap: () => onRoleSelected('admin'),
                                     isOutlined: true,
                                   ),
-                          ],
-                        );
-                      },
+                                )
+                              : _RoleCard(
+                                  icon: Icons.settings_rounded,
+                                  iconColor: AppColors.secondary,
+                                  iconBgColor: AppColors.secondary.withOpacity(0.1),
+                                  title: 'Admin',
+                                  description:
+                                      'Quản lý topics, theo dõi hoạt động và hiệu suất của users',
+                                  features: const [
+                                    '✓ Tạo và quản lý topics',
+                                    '✓ Dashboard thống kê',
+                                    '✓ Theo dõi hiệu suất users',
+                                    '✓ Phân tích xu hướng học tập',
+                                  ],
+                                  buttonText: 'Bắt đầu với Admin',
+                                  onTap: () => onRoleSelected('admin'),
+                                  isOutlined: true,
+                                ),
+                        ],
+                      );
+                      
+                      return isWide ? IntrinsicHeight(child: cardsContent) : cardsContent;
+                    },
                     ),
                   ),
                 ],
@@ -194,6 +200,8 @@ class _RoleCardState extends State<_RoleCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -220,31 +228,31 @@ class _RoleCardState extends State<_RoleCard> {
                   ]
                 : [],
           ),
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(isMobile ? 20 : 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Icon
               Container(
-                width: 72,
-                height: 72,
+                width: isMobile ? 56 : 72,
+                height: isMobile ? 56 : 72,
                 decoration: BoxDecoration(
                   color: widget.iconBgColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   widget.icon,
-                  size: 36,
+                  size: isMobile ? 28 : 36,
                   color: widget.iconColor,
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: isMobile ? 16 : 24),
 
               // Title
               Text(
                 widget.title,
-                style: const TextStyle(
-                  fontSize: 28,
+                style: TextStyle(
+                  fontSize: isMobile ? 22 : 28,
                   fontWeight: FontWeight.bold,
                   color: AppColors.gray900,
                 ),

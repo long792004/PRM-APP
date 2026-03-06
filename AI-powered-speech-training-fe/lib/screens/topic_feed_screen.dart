@@ -94,14 +94,16 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header
-        const Text(
+        Text(
           'Chọn Topic luyện tập',
           style: TextStyle(
-            fontSize: 32,
+            fontSize: isMobile ? 24 : 32,
             fontWeight: FontWeight.bold,
             color: AppColors.gray900,
           ),
@@ -117,60 +119,117 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
         const SizedBox(height: 24),
 
         // Search and Filters
-        Row(
-          children: [
-            // Search
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Tìm kiếm topic...',
-                  prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: AppColors.gray400),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {});
-                          },
-                        )
-                      : null,
-                ),
+        isMobile
+            ? Column(
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      hintText: 'Tìm kiếm topic...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: AppColors.gray400),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                            )
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _LevelChip(
+                          label: 'Tất cả',
+                          isSelected: _selectedLevel == null,
+                          onTap: () => setState(() => _selectedLevel = null),
+                        ),
+                        const SizedBox(width: 8),
+                        _LevelChip(
+                          label: 'Beginner',
+                          color: AppColors.beginnerColor,
+                          isSelected: _selectedLevel == TopicLevel.beginner,
+                          onTap: () => setState(() => _selectedLevel = TopicLevel.beginner),
+                        ),
+                        const SizedBox(width: 8),
+                        _LevelChip(
+                          label: 'Intermediate',
+                          color: AppColors.intermediateColor,
+                          isSelected: _selectedLevel == TopicLevel.intermediate,
+                          onTap: () =>
+                              setState(() => _selectedLevel = TopicLevel.intermediate),
+                        ),
+                        const SizedBox(width: 8),
+                        _LevelChip(
+                          label: 'Advanced',
+                          color: AppColors.advancedColor,
+                          isSelected: _selectedLevel == TopicLevel.advanced,
+                          onTap: () => setState(() => _selectedLevel = TopicLevel.advanced),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  // Search
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Tìm kiếm topic...',
+                        prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, color: AppColors.gray400),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {});
+                                },
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  
+                  // Level Filters
+                  _LevelChip(
+                    label: 'Tất cả',
+                    isSelected: _selectedLevel == null,
+                    onTap: () => setState(() => _selectedLevel = null),
+                  ),
+                  const SizedBox(width: 8),
+                  _LevelChip(
+                    label: 'Beginner',
+                    color: AppColors.beginnerColor,
+                    isSelected: _selectedLevel == TopicLevel.beginner,
+                    onTap: () => setState(() => _selectedLevel = TopicLevel.beginner),
+                  ),
+                  const SizedBox(width: 8),
+                  _LevelChip(
+                    label: 'Intermediate',
+                    color: AppColors.intermediateColor,
+                    isSelected: _selectedLevel == TopicLevel.intermediate,
+                    onTap: () =>
+                        setState(() => _selectedLevel = TopicLevel.intermediate),
+                  ),
+                  const SizedBox(width: 8),
+                  _LevelChip(
+                    label: 'Advanced',
+                    color: AppColors.advancedColor,
+                    isSelected: _selectedLevel == TopicLevel.advanced,
+                    onTap: () => setState(() => _selectedLevel = TopicLevel.advanced),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 16),
-            
-            // Level Filters
-            _LevelChip(
-              label: 'Tất cả',
-              isSelected: _selectedLevel == null,
-              onTap: () => setState(() => _selectedLevel = null),
-            ),
-            const SizedBox(width: 8),
-            _LevelChip(
-              label: 'Beginner',
-              color: AppColors.beginnerColor,
-              isSelected: _selectedLevel == TopicLevel.beginner,
-              onTap: () => setState(() => _selectedLevel = TopicLevel.beginner),
-            ),
-            const SizedBox(width: 8),
-            _LevelChip(
-              label: 'Intermediate',
-              color: AppColors.intermediateColor,
-              isSelected: _selectedLevel == TopicLevel.intermediate,
-              onTap: () =>
-                  setState(() => _selectedLevel = TopicLevel.intermediate),
-            ),
-            const SizedBox(width: 8),
-            _LevelChip(
-              label: 'Advanced',
-              color: AppColors.advancedColor,
-              isSelected: _selectedLevel == TopicLevel.advanced,
-              onTap: () => setState(() => _selectedLevel = TopicLevel.advanced),
-            ),
-          ],
-        ),
         const SizedBox(height: 24),
 
         // Topics Grid
@@ -186,9 +245,9 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
                   ),
                 )
               : GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 400,
-                    childAspectRatio: 1.2,
+                    childAspectRatio: isMobile ? 0.8 : 1.2,
                     crossAxisSpacing: 20,
                     mainAxisSpacing: 20,
                   ),
@@ -388,36 +447,47 @@ class _TopicCard extends StatelessWidget {
               const SizedBox(height: 8),
 
               // Footer
-              Row(
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
+                runSpacing: 12,
                 children: [
-                  const Icon(
-                    Icons.access_time,
-                    size: 16,
-                    color: AppColors.gray500,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: AppColors.gray500,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        topic.duration,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.gray600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    topic.duration,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.gray600,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.chat_bubble_outline,
+                        size: 16,
+                        color: AppColors.gray500,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${topic.questions.length} câu hỏi',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.gray600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  const Icon(
-                    Icons.chat_bubble_outline,
-                    size: 16,
-                    color: AppColors.gray500,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${topic.questions.length} câu hỏi',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.gray600,
-                    ),
-                  ),
-                  const Spacer(),
                   SizedBox(
                     height: 32,
                     child: ElevatedButton(

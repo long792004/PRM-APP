@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'models/topic.dart';
 import 'models/recording.dart';
-import 'screens/role_selection_screen.dart';
+import 'screens/login_screen.dart';
 import 'screens/topic_feed_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
@@ -153,10 +153,12 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Role selection screen
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    // Login screen
     if (_currentRole == null) {
-      return RoleSelectionScreen(
-        onRoleSelected: _handleRoleSelected,
+      return LoginScreen(
+        onLoginSuccess: _handleRoleSelected,
       );
     }
 
@@ -212,7 +214,7 @@ class _MainScreenState extends State<MainScreen> {
             TextButton.icon(
               onPressed: _handleLogout,
               icon: const Icon(Icons.logout, size: 18),
-              label: const Text('Đổi role'),
+              label: const Text('Logout'),
             ),
             const SizedBox(width: 8),
           ],
@@ -248,7 +250,7 @@ class _MainScreenState extends State<MainScreen> {
             // Content
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(isMobile ? 12 : 24),
                 child: _currentUserTab == 0
                     ? TopicFeedScreen(onSelectTopic: _handleSelectTopic)
                     : HistoryScreen(onViewRecording: _handleViewRecording),
@@ -311,7 +313,7 @@ class _MainScreenState extends State<MainScreen> {
             TextButton.icon(
               onPressed: _handleLogout,
               icon: const Icon(Icons.logout, size: 18),
-              label: const Text('Đổi role'),
+              label: const Text('Logout'),
             ),
             const SizedBox(width: 8),
           ],
@@ -347,7 +349,7 @@ class _MainScreenState extends State<MainScreen> {
             // Content
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(isMobile ? 12 : 24),
                 child: _currentAdminTab == 0
                     ? const AdminDashboardScreen()
                     : const TopicManagementScreen(),
@@ -377,35 +379,40 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? AppColors.primary : Colors.transparent,
-              width: 2,
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isSelected ? AppColors.primary : AppColors.gray600,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? AppColors.primary : AppColors.gray600,
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 20, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isSelected ? AppColors.primary : Colors.transparent,
+                width: 2,
               ),
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: isMobile ? 18 : 24,
+                color: isSelected ? AppColors.primary : AppColors.gray600,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected ? AppColors.primary : AppColors.gray600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
