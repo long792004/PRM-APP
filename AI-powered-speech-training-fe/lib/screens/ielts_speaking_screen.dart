@@ -282,7 +282,7 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
 
               // Vùng Thu Âm
               SizedBox(
-                height: 140,
+                height: 180,
                 child: Center(
                   child: _audioPath == null
                       ? _buildRecordButton()
@@ -297,46 +297,69 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
   }
 
   Widget _buildRecordButton() {
-    return GestureDetector(
-      onTap: _isPreparing
-          ? _startRecording
-          : (_isRecording ? _stopRecording : null),
-      child: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          final scale = _isRecording ? 1.0 + (_animationController.value * 0.15) : 1.0;
-          return Transform.scale(
-            scale: scale,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _isRecording ? AppColors.error : AppColors.primary,
-                boxShadow: [
-                  if (_isRecording)
-                    BoxShadow(
-                      color: AppColors.error.withOpacity(0.5),
-                      blurRadius: 20 * _animationController.value,
-                      spreadRadius: 10 * _animationController.value,
-                    )
-                  else
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    )
-                ],
-              ),
-              child: Icon(
-                _isPreparing ? Icons.mic : (_isRecording ? Icons.stop : Icons.mic),
-                color: AppColors.white,
-                size: 36,
-              ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: _isPreparing
+              ? _startRecording
+              : (_isRecording ? _stopRecording : null),
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              final scale = _isRecording ? 1.0 + (_animationController.value * 0.15) : 1.0;
+              return Transform.scale(
+                scale: scale,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _isRecording ? AppColors.error : AppColors.primary,
+                    boxShadow: [
+                      if (_isRecording)
+                        BoxShadow(
+                          color: AppColors.error.withOpacity(0.5),
+                          blurRadius: 20 * _animationController.value,
+                          spreadRadius: 10 * _animationController.value,
+                        )
+                      else
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        )
+                    ],
+                  ),
+                  child: Icon(
+                    _isPreparing ? Icons.mic : (_isRecording ? Icons.stop : Icons.mic),
+                    color: AppColors.white,
+                    size: 36,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextButton.icon(
+          onPressed: () {
+            if (_isPreparing) {
+              _startRecording();
+            } else if (_isRecording) {
+              _stopRecording();
+            }
+          },
+          icon: Icon(_isPreparing ? Icons.play_arrow_rounded : Icons.check_circle_outline),
+          label: Text(
+            _isPreparing ? 'Bỏ qua chuẩn bị & Bắt đầu nói ngay' : 'Dừng & Chờ Nộp Bài Ngay',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: _isPreparing ? AppColors.primary : AppColors.error,
             ),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 
