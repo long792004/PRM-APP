@@ -67,22 +67,18 @@ class RoleSelectionScreen extends StatelessWidget {
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final isWide = constraints.maxWidth > 600;
-                      // Layout the cards manually
-                      final cardsContent = Flex(
-                        direction: isWide ? Axis.horizontal : Axis.vertical,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // User Card
-                          isWide
-                              ? Expanded(
+                        if (isWide) {
+                          return IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
                                   child: _RoleCard(
                                     icon: Icons.person_rounded,
                                     iconColor: AppColors.primary,
                                     iconBgColor: AppColors.primary.withOpacity(0.1),
                                     title: 'User',
-                                    description:
-                                        'Luyện tập speaking với các topic được giao và nhận feedback từ AI',
+                                    description: 'Luyện tập speaking với các topic được giao và nhận feedback từ AI',
                                     features: const [
                                       '✓ Chọn topics luyện tập',
                                       '✓ Ghi âm và nhận AI feedback',
@@ -92,37 +88,15 @@ class RoleSelectionScreen extends StatelessWidget {
                                     buttonText: 'Bắt đầu với User',
                                     onTap: () => onRoleSelected('user'),
                                   ),
-                                )
-                              : _RoleCard(
-                                  icon: Icons.person_rounded,
-                                  iconColor: AppColors.primary,
-                                  iconBgColor: AppColors.primary.withOpacity(0.1),
-                                  title: 'User',
-                                  description:
-                                      'Luyện tập speaking với các topic được giao và nhận feedback từ AI',
-                                  features: const [
-                                    '✓ Chọn topics luyện tập',
-                                    '✓ Ghi âm và nhận AI feedback',
-                                    '✓ Xem lịch sử và theo dõi tiến độ',
-                                    '✓ Đánh giá chi tiết từng kỹ năng',
-                                  ],
-                                  buttonText: 'Bắt đầu với User',
-                                  onTap: () => onRoleSelected('user'),
                                 ),
-                          if (isWide)
-                            const SizedBox(width: 24)
-                          else
-                            const SizedBox(height: 24),
-                          // Admin Card
-                          isWide
-                              ? Expanded(
+                                const SizedBox(width: 24),
+                                Expanded(
                                   child: _RoleCard(
                                     icon: Icons.settings_rounded,
                                     iconColor: AppColors.secondary,
                                     iconBgColor: AppColors.secondary.withOpacity(0.1),
                                     title: 'Admin',
-                                    description:
-                                        'Quản lý topics, theo dõi hoạt động và hiệu suất của users',
+                                    description: 'Quản lý topics, theo dõi hoạt động và hiệu suất của users',
                                     features: const [
                                       '✓ Tạo và quản lý topics',
                                       '✓ Dashboard thống kê',
@@ -133,29 +107,51 @@ class RoleSelectionScreen extends StatelessWidget {
                                     onTap: () => onRoleSelected('admin'),
                                     isOutlined: true,
                                   ),
-                                )
-                              : _RoleCard(
-                                  icon: Icons.settings_rounded,
-                                  iconColor: AppColors.secondary,
-                                  iconBgColor: AppColors.secondary.withOpacity(0.1),
-                                  title: 'Admin',
-                                  description:
-                                      'Quản lý topics, theo dõi hoạt động và hiệu suất của users',
-                                  features: const [
-                                    '✓ Tạo và quản lý topics',
-                                    '✓ Dashboard thống kê',
-                                    '✓ Theo dõi hiệu suất users',
-                                    '✓ Phân tích xu hướng học tập',
-                                  ],
-                                  buttonText: 'Bắt đầu với Admin',
-                                  onTap: () => onRoleSelected('admin'),
-                                  isOutlined: true,
                                 ),
-                        ],
-                      );
-                      
-                      return isWide ? IntrinsicHeight(child: cardsContent) : cardsContent;
-                    },
+                              ],
+                            ),
+                          );
+                        } else {
+                          // Mobile layout
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _RoleCard(
+                                icon: Icons.person_rounded,
+                                iconColor: AppColors.primary,
+                                iconBgColor: AppColors.primary.withOpacity(0.1),
+                                title: 'User',
+                                description: 'Luyện tập speaking với các topic được giao và nhận feedback từ AI',
+                                features: const [
+                                  '✓ Chọn topics luyện tập',
+                                  '✓ Ghi âm và nhận AI feedback',
+                                  '✓ Xem lịch sử và theo dõi tiến độ',
+                                  '✓ Đánh giá chi tiết từng kỹ năng',
+                                ],
+                                buttonText: 'Bắt đầu với User',
+                                onTap: () => onRoleSelected('user'),
+                              ),
+                              const SizedBox(height: 24),
+                              _RoleCard(
+                                icon: Icons.settings_rounded,
+                                iconColor: AppColors.secondary,
+                                iconBgColor: AppColors.secondary.withOpacity(0.1),
+                                title: 'Admin',
+                                description: 'Quản lý topics, theo dõi hoạt động và hiệu suất của users',
+                                features: const [
+                                  '✓ Tạo và quản lý topics',
+                                  '✓ Dashboard thống kê',
+                                  '✓ Theo dõi hiệu suất users',
+                                  '✓ Phân tích xu hướng học tập',
+                                ],
+                                buttonText: 'Bắt đầu với Admin',
+                                onTap: () => onRoleSelected('admin'),
+                                isOutlined: true,
+                              ),
+                            ],
+                          );
+                        }
+                      },
                     ),
                   ),
                 ],

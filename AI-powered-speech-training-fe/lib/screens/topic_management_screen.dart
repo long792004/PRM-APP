@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/topic.dart';
+import '../models/exam.dart';
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
+import 'exam_editor_screen.dart';
 
 class TopicManagementScreen extends StatefulWidget {
   const TopicManagementScreen({super.key});
@@ -11,83 +13,65 @@ class TopicManagementScreen extends StatefulWidget {
 }
 
 class _TopicManagementScreenState extends State<TopicManagementScreen> {
-  // Mock data
-  final List<Topic> _topics = [
-    Topic(
-      id: '1',
-      title: 'Travel and Tourism',
-      prompt: 'Discuss your travel experiences and favorite destinations',
-      level: TopicLevel.intermediate,
-      tags: ['IELTS', 'Daily'],
-      questions: [
-        'What is your favorite place to visit?',
-        'How do you usually plan your trips?',
-        'What makes a destination worth visiting?',
-      ],
-      duration: '5-7 phút',
-      createdAt: '2026-01-15',
-    ),
-    Topic(
-      id: '2',
-      title: 'Job Interview Preparation',
-      prompt: 'Practice common job interview questions and scenarios',
-      level: TopicLevel.advanced,
-      tags: ['Interview', 'Professional'],
-      questions: [
-        'Tell me about yourself',
-        'What are your strengths and weaknesses?',
-        'Where do you see yourself in 5 years?',
-      ],
-      duration: '3-5 phút',
-      createdAt: '2026-01-14',
-    ),
-  ];
+  late Future<List<IeltsExam>> _examsFuture;
 
-  void _showTopicDialog({Topic? topic}) {
-    showDialog(
-      context: context,
-      builder: (context) => _TopicDialog(
-        topic: topic,
-        onSave: (newTopic) {
-          setState(() {
-            if (topic != null) {
-              final index = _topics.indexWhere((t) => t.id == topic.id);
-              if (index != -1) {
-                _topics[index] = newTopic;
-              }
-            } else {
-              _topics.add(newTopic);
-            }
-          });
-        },
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadExams();
   }
 
-  void _deleteTopic(Topic topic) {
+  void _loadExams() {
+    _examsFuture = ApiService.getExams().then((data) =>
+        data.map((json) => IeltsExam.fromJson(json as Map<String, dynamic>)).toList());
+  }
+
+  void _navigateToEditor([IeltsExam? exam]) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExamEditorScreen(exam: exam),
+      ),
+    );
+    if (result == true) {
+      setState(() => _loadExams());
+    }
+  }
+
+  void _deleteExam(IeltsExam exam) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xóa Topic'),
-        content: Text('Bạn có chắc muốn xóa topic "${topic.title}"?'),
+        title: const Text('Xóa Bài Thi'),
+        content: Text('Bạn có chắc muốn xóa bài thi "${exam.title}"? Thao tác này sẽ xóa toàn bộ số câu hỏi.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Hủy'),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _topics.removeWhere((t) => t.id == topic.id);
-              });
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã xóa topic')),
-              );
+              try {
+                await ApiService.deleteExam(exam.id);
+                setState(() => _loadExams());
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('✅ Đã xóa bài thi'), backgroundColor: AppColors.success),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString().replaceFirst('Exception: ', '')),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Xóa'),
           ),
         ],
@@ -108,7 +92,7 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Quản lý Topics',
+                    'Quản lý Đề Thi',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -117,7 +101,7 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Tạo và quản lý các chủ đề luyện nói',
+                    'Tạo và quản lý các Đề thi IELTS 4 kỹ năng',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.gray600,
@@ -127,14 +111,11 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => _showTopicDialog(),
+                      onPressed: () => _navigateToEditor(),
                       icon: const Icon(Icons.add),
-                      label: const Text('Tạo Topic mới'),
+                      label: const Text('Tạo Đề Mới'),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       ),
                     ),
                   ),
@@ -147,7 +128,7 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Quản lý Topics',
+                          'Quản lý Đề Thi',
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
@@ -156,7 +137,7 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Tạo và quản lý các chủ đề luyện nói',
+                          'Tạo và quản lý các Đề thi IELTS 4 kỹ năng',
                           style: TextStyle(
                             fontSize: 16,
                             color: AppColors.gray600,
@@ -166,31 +147,76 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
                     ),
                   ),
                   ElevatedButton.icon(
-                    onPressed: () => _showTopicDialog(),
+                    onPressed: () => _navigateToEditor(),
                     icon: const Icon(Icons.add),
-                    label: const Text('Tạo Topic mới'),
+                    label: const Text('Tạo Đề Mới'),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                     ),
                   ),
                 ],
               ),
         const SizedBox(height: 24),
 
-        // Topics List
+        // Exams List
         Expanded(
-          child: ListView.separated(
-            itemCount: _topics.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final topic = _topics[index];
-              return _TopicManagementCard(
-                topic: topic,
-                onEdit: () => _showTopicDialog(topic: topic),
-                onDelete: () => _deleteTopic(topic),
+          child: FutureBuilder<List<IeltsExam>>(
+            future: _examsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                      const SizedBox(height: 16),
+                      Text('${snapshot.error}', textAlign: TextAlign.center),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => setState(() => _loadExams()),
+                        child: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              final exams = snapshot.data ?? [];
+              if (exams.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.book_outlined, size: 64, color: AppColors.gray300),
+                      const SizedBox(height: 16),
+                      const Text('Chưa có đề thi nào. Hãy tạo đề thi đầu tiên!',
+                          style: TextStyle(fontSize: 16, color: AppColors.gray500)),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => _navigateToEditor(),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Tạo Đề Mới'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return RefreshIndicator(
+                onRefresh: () async => setState(() => _loadExams()),
+                child: ListView.separated(
+                  itemCount: exams.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final exam = exams[index];
+                    return _ExamManagementCard(
+                      exam: exam,
+                      onEdit: () => _navigateToEditor(exam),
+                      onDelete: () => _deleteExam(exam),
+                    );
+                  },
+                ),
               );
             },
           ),
@@ -200,44 +226,29 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
   }
 }
 
-class _TopicManagementCard extends StatelessWidget {
-  final Topic topic;
+class _ExamManagementCard extends StatelessWidget {
+  final IeltsExam exam;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _TopicManagementCard({
-    required this.topic,
+  const _ExamManagementCard({
+    required this.exam,
     required this.onEdit,
     required this.onDelete,
   });
 
-  Color get _levelColor {
-    switch (topic.level) {
-      case TopicLevel.beginner:
-        return AppColors.beginnerColor;
-      case TopicLevel.intermediate:
-        return AppColors.intermediateColor;
-      case TopicLevel.advanced:
-        return AppColors.advancedColor;
-    }
-  }
-
-  Color get _levelBgColor {
-    switch (topic.level) {
-      case TopicLevel.beginner:
-        return AppColors.beginnerBg;
-      case TopicLevel.intermediate:
-        return AppColors.intermediateBg;
-      case TopicLevel.advanced:
-        return AppColors.advancedBg;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
-    final date = DateTime.parse(topic.createdAt);
-    final dateStr = DateFormat('dd-MM-yyyy').format(date);
+    
+    // Safety check cho ngày tạo
+    String dateStr = '';
+    if (exam.createdAt.isNotEmpty) {
+      try {
+        final date = DateTime.parse(exam.createdAt);
+        dateStr = DateFormat('dd-MM-yyyy').format(date);
+      } catch (_) {}
+    }
 
     return Card(
       child: Padding(
@@ -245,7 +256,6 @@ class _TopicManagementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -259,7 +269,7 @@ class _TopicManagementCard extends StatelessWidget {
                         runSpacing: 8,
                         children: [
                           Text(
-                            topic.title,
+                            exam.title,
                             style: TextStyle(
                               fontSize: isMobile ? 18 : 20,
                               fontWeight: FontWeight.bold,
@@ -267,20 +277,17 @@ class _TopicManagementCard extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: _levelBgColor,
+                              color: AppColors.advancedBg,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              topic.level.displayName,
-                              style: TextStyle(
+                              exam.type,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: _levelColor,
+                                color: AppColors.advancedColor,
                               ),
                             ),
                           ),
@@ -288,11 +295,8 @@ class _TopicManagementCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        topic.prompt,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.gray600,
-                        ),
+                        'Bao gồm ${exam.sections.length} phần thi kỹ năng',
+                        style: const TextStyle(fontSize: 14, color: AppColors.gray600),
                       ),
                     ],
                   ),
@@ -313,17 +317,12 @@ class _TopicManagementCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Tags
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: topic.tags
-                  .map((tag) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
+              children: exam.sections
+                  .map((sec) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: AppColors.gray100,
                           borderRadius: BorderRadius.circular(6),
@@ -331,18 +330,11 @@ class _TopicManagementCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.tag,
-                              size: 14,
-                              color: AppColors.gray600,
-                            ),
+                            const Icon(Icons.check_circle, size: 14, color: AppColors.success),
                             const SizedBox(width: 4),
                             Text(
-                              tag,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.gray700,
-                              ),
+                              '${sec.skill} (${sec.questions.length} câu hỏi)',
+                              style: const TextStyle(fontSize: 12, color: AppColors.gray700),
                             ),
                           ],
                         ),
@@ -350,70 +342,21 @@ class _TopicManagementCard extends StatelessWidget {
                   .toList(),
             ),
             const SizedBox(height: 16),
-
-            // Questions
-            const Text(
-              'Câu hỏi gợi ý:',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.gray900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ...topic.questions.asMap().entries.map(
-                  (entry) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${entry.key + 1}.',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.gray600,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            entry.value,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.gray600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            const SizedBox(height: 12),
-
-            // Footer
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Tạo ngày: $dateStr',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.gray500,
-                  ),
-                ),
+                Text('Tạo ngày: $dateStr', style: const TextStyle(fontSize: 12, color: AppColors.gray500)),
                 if (isMobile)
                   Row(
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit_outlined, size: 20),
                         onPressed: onEdit,
-                        tooltip: 'Chỉnh sửa',
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline, size: 20),
                         onPressed: onDelete,
                         color: AppColors.error,
-                        tooltip: 'Xóa',
                       ),
                     ],
                   ),
@@ -423,145 +366,5 @@ class _TopicManagementCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _TopicDialog extends StatefulWidget {
-  final Topic? topic;
-  final Function(Topic) onSave;
-
-  const _TopicDialog({
-    this.topic,
-    required this.onSave,
-  });
-
-  @override
-  State<_TopicDialog> createState() => _TopicDialogState();
-}
-
-class _TopicDialogState extends State<_TopicDialog> {
-  late TextEditingController _titleController;
-  late TextEditingController _promptController;
-  late TopicLevel _selectedLevel;
-  late List<String> _tags;
-  late List<String> _questions;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.topic?.title ?? '');
-    _promptController = TextEditingController(text: widget.topic?.prompt ?? '');
-    _selectedLevel = widget.topic?.level ?? TopicLevel.beginner;
-    _tags = widget.topic?.tags.toList() ?? [];
-    _questions = widget.topic?.questions.toList() ?? ['', '', ''];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.topic == null ? 'Tạo Topic mới' : 'Chỉnh sửa Topic'),
-      content: SizedBox(
-        width: 600,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Tiêu đề *',
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _promptController,
-                decoration: const InputDecoration(
-                  labelText: 'Mô tả *',
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<TopicLevel>(
-                initialValue: _selectedLevel,
-                decoration: const InputDecoration(
-                  labelText: 'Level *',
-                ),
-                items: TopicLevel.values
-                    .map((level) => DropdownMenuItem(
-                          value: level,
-                          child: Text(level.displayName),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedLevel = value);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Tags (phân cách bằng dấu phẩy)',
-                style: TextStyle(fontSize: 12, color: AppColors.gray600),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                decoration: const InputDecoration(
-                  hintText: 'IELTS, Daily, Professional...',
-                ),
-                onChanged: (value) {
-                  _tags = value
-                      .split(',')
-                      .map((tag) => tag.trim())
-                      .where((tag) => tag.isNotEmpty)
-                      .toList();
-                },
-                controller: TextEditingController(text: _tags.join(', ')),
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Hủy'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (_titleController.text.isEmpty ||
-                _promptController.text.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Vui lòng điền đầy đủ thông tin')),
-              );
-              return;
-            }
-
-            final newTopic = Topic(
-              id: widget.topic?.id ?? DateTime.now().toString(),
-              title: _titleController.text,
-              prompt: _promptController.text,
-              level: _selectedLevel,
-              tags: _tags,
-              questions: _questions.where((q) => q.isNotEmpty).toList(),
-              duration: '5-7 phút',
-              createdAt:
-                  widget.topic?.createdAt ?? DateTime.now().toIso8601String(),
-            );
-
-            widget.onSave(newTopic);
-            Navigator.pop(context);
-          },
-          child: const Text('Lưu'),
-        ),
-      ],
-    );
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _promptController.dispose();
-    super.dispose();
   }
 }

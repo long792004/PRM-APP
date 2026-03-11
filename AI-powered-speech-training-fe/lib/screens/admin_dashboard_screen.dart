@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
+
+  @override
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+}
+
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  late Future<Map<String, dynamic>> _statsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _statsFuture = ApiService.getAdminStats();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +26,6 @@ class AdminDashboardScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
         Text(
           'Dashboard',
           style: TextStyle(
@@ -24,55 +37,70 @@ class AdminDashboardScreen extends StatelessWidget {
         const SizedBox(height: 8),
         const Text(
           'Tổng quan về hoạt động và hiệu suất của users',
-          style: TextStyle(
-            fontSize: 16,
-            color: AppColors.gray600,
-          ),
+          style: TextStyle(fontSize: 16, color: AppColors.gray600),
         ),
         const SizedBox(height: 24),
 
         // Statistics Cards
-        GridView.count(
-          crossAxisCount: isMobile ? 2 : 4,
-          shrinkWrap: true,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: isMobile ? 1.5 : 2,
-          physics: const NeverScrollableScrollPhysics(),
-          children: const [
-            _MetricCard(
-              title: 'Tổng Users',
-              value: '248',
-              change: '+12% so với tháng trước',
-              icon: Icons.people_outline,
-              color: AppColors.primary,
-              isPositive: true,
-            ),
-            _MetricCard(
-              title: 'Tổng Topics',
-              value: '64',
-              change: 'Đang hoạt động',
-              icon: Icons.book_outlined,
-              color: AppColors.secondary,
-              isPositive: true,
-            ),
-            _MetricCard(
-              title: 'Bài luyện tuần này',
-              value: '1,342',
-              change: '+18% so với tuần trước',
-              icon: Icons.trending_up,
-              color: AppColors.success,
-              isPositive: true,
-            ),
-            _MetricCard(
-              title: 'Điểm TB',
-              value: '7.8',
-              change: '+0.5 điểm so với tháng trước',
-              icon: Icons.star_outline,
-              color: AppColors.warning,
-              isPositive: true,
-            ),
-          ],
+        FutureBuilder<Map<String, dynamic>>(
+          future: _statsFuture,
+          builder: (context, snapshot) {
+            final totalUsers = snapshot.data?['totalUsers'] ?? '-';
+            final totalTopics = snapshot.data?['totalTopics'] ?? '-';
+            final totalRecordings = snapshot.data?['totalRecordings'] ?? '-';
+
+            return GridView.count(
+              crossAxisCount: isMobile ? 2 : 4,
+              shrinkWrap: true,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: isMobile ? 1.5 : 2,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                _MetricCard(
+                  title: 'Tổng Users',
+                  value: snapshot.connectionState == ConnectionState.waiting
+                      ? '...'
+                      : '$totalUsers',
+                  change: 'Tổng số học viên',
+                  icon: Icons.people_outline,
+                  color: AppColors.primary,
+                  isPositive: true,
+                ),
+                _MetricCard(
+                  title: 'Tổng Topics',
+                  value: snapshot.connectionState == ConnectionState.waiting
+                      ? '...'
+                      : '$totalTopics',
+                  change: 'Đang hoạt động',
+                  icon: Icons.book_outlined,
+                  color: AppColors.secondary,
+                  isPositive: true,
+                ),
+                _MetricCard(
+                  title: 'Tổng bài luyện',
+                  value: snapshot.connectionState == ConnectionState.waiting
+                      ? '...'
+                      : '$totalRecordings',
+                  change: 'Tất cả thời gian',
+                  icon: Icons.trending_up,
+                  color: AppColors.success,
+                  isPositive: true,
+                ),
+                _MetricCard(
+                  title: 'Refresh',
+                  value: '↻',
+                  change: 'Nhấn để tải lại',
+                  icon: Icons.refresh,
+                  color: AppColors.warning,
+                  isPositive: true,
+                  onTap: () => setState(() {
+                    _statsFuture = ApiService.getAdminStats();
+                  }),
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 24),
 
@@ -86,24 +114,15 @@ class AdminDashboardScreen extends StatelessWidget {
                 children: [
                   const Text(
                     'Hoạt động tuần qua',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.gray900,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900),
                   ),
                   const SizedBox(height: 4),
                   const Text(
                     'Số lượng bài luyện theo ngày',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.gray600,
-                    ),
+                    style: TextStyle(fontSize: 14, color: AppColors.gray600),
                   ),
                   const SizedBox(height: 24),
-                  Expanded(
-                    child: _WeeklyActivityChart(),
-                  ),
+                  Expanded(child: _WeeklyActivityChart()),
                 ],
               ),
             ),
@@ -121,6 +140,7 @@ class _MetricCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final bool isPositive;
+  final VoidCallback? onTap;
 
   const _MetricCard({
     required this.title,
@@ -129,6 +149,7 @@ class _MetricCard extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.isPositive,
+    this.onTap,
   });
 
   @override
@@ -136,7 +157,11 @@ class _MetricCard extends StatelessWidget {
     final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Card(
-      child: Padding(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,6 +228,7 @@ class _MetricCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

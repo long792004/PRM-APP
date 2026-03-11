@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,23 +19,43 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  
-  // Temporary selected role for demo purposes.
-  // In a real app, role is determined by backend based on credentials.
-  String _selectedRole = 'user'; 
+  bool _isLoading = false;
+  String _selectedRole = 'user';
 
-  void _handleLogin() {
-    // In a real app, we validate credentials here.
-    // For this UI, we just proceed.
-    if (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
-       widget.onLoginSuccess(_selectedRole);
-    } else {
+  Future<void> _handleLogin() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Vui lòng nhập đầy đủ thông tin!'),
           backgroundColor: AppColors.error,
         ),
       );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final result = await ApiService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+      final token = result['token'] as String;
+      final user = result['user'] as Map<String, dynamic>;
+      final role = user['role'] as String;
+      final email = user['email'] as String;
+      await ApiService.saveToken(token);
+      await ApiService.saveUserInfo(role, email);
+      if (mounted) widget.onLoginSuccess(role);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -204,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             // Login Button
                             ElevatedButton(
-                              onPressed: _handleLogin,
+                              onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 backgroundColor: _selectedRole == 'admin' 
@@ -215,13 +236,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 elevation: 0,
                               ),
-                              child: const Text(
-                                'Đăng nhập',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Đăng nhập',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                             ),
                           ],
                         ),

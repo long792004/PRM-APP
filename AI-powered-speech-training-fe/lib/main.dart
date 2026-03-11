@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
-import 'models/topic.dart';
+import 'models/exam.dart';
 import 'models/recording.dart';
 import 'screens/login_screen.dart';
 import 'screens/topic_feed_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/topic_management_screen.dart';
+import 'screens/ielts_speaking_screen.dart';
+import 'screens/ielts_writing_screen.dart';
+import 'screens/ielts_reading_screen.dart';
+import 'screens/ielts_listening_screen.dart';
+import 'services/api_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +43,20 @@ class _MainScreenState extends State<MainScreen> {
   int _currentUserTab = 0;
   int _currentAdminTab = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    _restoreSession();
+  }
+
+  Future<void> _restoreSession() async {
+    final info = await ApiService.getUserInfo();
+    final token = await ApiService.getToken();
+    if (token != null && info['role'] != null && mounted) {
+      setState(() => _currentRole = info['role']);
+    }
+  }
+
   void _handleRoleSelected(String role) {
     setState(() {
       _currentRole = role;
@@ -46,7 +65,8 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _handleLogout() {
+  Future<void> _handleLogout() async {
+    await ApiService.clearToken();
     setState(() {
       _currentRole = null;
       _currentUserTab = 0;
@@ -54,47 +74,121 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _handleSelectTopic(Topic topic) {
-    // Navigate to practice screen
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text(topic.title),
-          ),
-          body: Center(
+  void _handleSelectTopic(IeltsExam exam) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.mic_rounded,
-                  size: 100,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(height: 24),
                 const Text(
-                  'Practice Screen',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'Chọn kỹ năng luyện tập',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  topic.title,
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Quay lại'),
-                ),
+                
+                // Speaking
+                if (exam.sections.any((s) => s.skill == 'SPEAKING')) ...[
+                  ListTile(
+                    leading: const Icon(Icons.mic, color: Colors.blue),
+                    title: const Text('Speaking'),
+                    subtitle: const Text('Luyện nói với AI (Trả kết quả biểu đồ)'),
+                    onTap: () {
+                      final sec = exam.sections.firstWhere((s) => s.skill == 'SPEAKING');
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => IeltsSpeakingScreen(
+                            questionId: sec.questions.isNotEmpty ? sec.questions.first.id : exam.id,
+                            prompt: sec.questions.isNotEmpty ? sec.questions.first.questionText : 'Speaking Prompt',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+                
+                // Writing
+                if (exam.sections.any((s) => s.skill == 'WRITING')) ...[
+                  ListTile(
+                    leading: const Icon(Icons.edit, color: Colors.green),
+                    title: const Text('Writing'),
+                    subtitle: const Text('Chấm điểm Essay tự động bằng AI'),
+                    onTap: () {
+                      final sec = exam.sections.firstWhere((s) => s.skill == 'WRITING');
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => IeltsWritingScreen(
+                            questionId: sec.questions.isNotEmpty ? sec.questions.first.id : exam.id,
+                            prompt: sec.questions.isNotEmpty ? sec.questions.first.questionText : 'Writing Prompt',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+
+                // Reading
+                if (exam.sections.any((s) => s.skill == 'READING')) ...[
+                  ListTile(
+                    leading: const Icon(Icons.book, color: Colors.orange),
+                    title: const Text('Reading'),
+                    subtitle: const Text('Luyện đọc, điền từ và trắc nghiệm'),
+                    onTap: () {
+                      final sec = exam.sections.firstWhere((s) => s.skill == 'READING');
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => IeltsReadingScreen(
+                            examId: exam.id,
+                            title: exam.title,
+                            passage: sec.content['readingPassage'] ?? '',
+                            questions: sec.questions.map((q) => q.toJson()).toList(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+
+                // Listening
+                if (exam.sections.any((s) => s.skill == 'LISTENING')) ...[
+                  ListTile(
+                    leading: const Icon(Icons.headset, color: Colors.deepPurple),
+                    title: const Text('Listening'),
+                    subtitle: const Text('Nghe audio và làm trắc nghiệm'),
+                    onTap: () {
+                      final sec = exam.sections.firstWhere((s) => s.skill == 'LISTENING');
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => IeltsListeningScreen(
+                            examId: exam.id,
+                            title: exam.title,
+                            audioUrl: sec.content['audioUrl'] ?? '',
+                            questions: sec.questions.map((q) => q.toJson()).toList(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

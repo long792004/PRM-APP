@@ -3,8 +3,9 @@ import 'package:intl/intl.dart';
 import '../models/recording.dart';
 import '../models/feedback.dart' as model;
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   final Function(Recording) onViewRecording;
 
   const HistoryScreen({
@@ -12,201 +13,149 @@ class HistoryScreen extends StatelessWidget {
     required this.onViewRecording,
   });
 
-  // Mock data
-  final List<Recording> _mockRecordings = const [
-    // Add mock data here
-  ];
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
 
-  List<Recording> get _recordings {
-    if (_mockRecordings.isEmpty) {
-      return [
-        Recording(
-          id: '1',
-          topicId: '1',
-          topicTitle: 'Travel and Tourism',
-          audioUrl: '',
-          duration: 245,
-          createdAt: '2026-01-18T10:30:00',
-          transcript: 'Sample transcript...',
-          feedback: model.Feedback(
-            overall: 8.2,
-            fluency: 8.0,
-            pronunciation: 7.8,
-            grammar: 8.3,
-            vocabulary: 8.5,
-            coherence: 8.0,
-            strengths: ['Good vocabulary usage', 'Clear pronunciation'],
-            issues: ['Some grammar mistakes'],
-            suggestions: ['Practice more complex sentences'],
-          ),
-        ),
-        Recording(
-          id: '2',
-          topicId: '3',
-          topicTitle: 'Technology and Innovation',
-          audioUrl: '',
-          duration: 189,
-          createdAt: '2026-01-16T14:20:00',
-          transcript: 'Sample transcript...',
-          feedback: model.Feedback(
-            overall: 7.5,
-            fluency: 7.2,
-            pronunciation: 7.8,
-            grammar: 7.5,
-            vocabulary: 7.6,
-            coherence: 7.4,
-            strengths: ['Good topic knowledge'],
-            issues: ['Need to improve fluency'],
-            suggestions: ['Practice speaking more regularly'],
-          ),
-        ),
-      ];
-    }
-    return _mockRecordings;
+class _HistoryScreenState extends State<HistoryScreen> {
+  late Future<List<Recording>> _historyFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+  void _loadHistory() {
+    _historyFuture = ApiService.getHistory().then((data) => data.map((json) {
+          final map = json as Map<String, dynamic>;
+          final fb = map['feedback'] as Map<String, dynamic>?;
+          return Recording(
+            id: map['id'] as String,
+            topicId: map['topicId'] as String,
+            topicTitle: map['topicTitle'] as String,
+            audioUrl: map['audioUrl'] as String,
+            duration: map['duration'] as int,
+            createdAt: map['createdAt'] as String,
+            transcript: map['transcript'] as String? ?? '',
+            feedback: fb != null
+                ? model.Feedback.fromJson(fb)
+                : model.Feedback(
+                    overall: 0, fluency: 0, pronunciation: 0,
+                    grammar: 0, vocabulary: 0, coherence: 0,
+                    strengths: [], issues: [], suggestions: [],
+                  ),
+          );
+        }).toList());
   }
 
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
 
-    final totalRecordings = _recordings.length;
-    final avgScore =
-        _recordings.isEmpty
+    return FutureBuilder<List<Recording>>(
+      future: _historyFuture,
+      builder: (context, snapshot) {
+        final recordings = snapshot.data ?? [];
+
+        final totalRecordings = recordings.length;
+        final avgScore = recordings.isEmpty
             ? 0.0
-            : _recordings.map((r) => r.feedback.overall).reduce((a, b) => a + b) /
-                _recordings.length;
-    final todayRecordings = _recordings
-        .where((r) =>
-            DateTime.parse(r.createdAt).day == DateTime.now().day &&
-            DateTime.parse(r.createdAt).month == DateTime.now().month)
-        .length;
-    final totalMinutes = _recordings.isEmpty
-        ? 0
-        : _recordings.map((r) => r.duration).reduce((a, b) => a + b) ~/ 60;
+            : recordings.map((r) => r.feedback.overall).reduce((a, b) => a + b) /
+                recordings.length;
+        final todayRecordings = recordings
+            .where((r) =>
+                DateTime.parse(r.createdAt).day == DateTime.now().day &&
+                DateTime.parse(r.createdAt).month == DateTime.now().month)
+            .length;
+        final totalMinutes = recordings.isEmpty
+            ? 0
+            : recordings.map((r) => r.duration).reduce((a, b) => a + b) ~/ 60;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Text(
-          'Lịch sử luyện tập',
-          style: TextStyle(
-            fontSize: isMobile ? 24 : 32,
-            fontWeight: FontWeight.bold,
-            color: AppColors.gray900,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Xem lại các bài luyện nói và theo dõi tiến độ',
-          style: TextStyle(
-            fontSize: 16,
-            color: AppColors.gray600,
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // Statistics Cards
-        GridView.count(
-          crossAxisCount: isMobile ? 2 : 4,
-          shrinkWrap: true,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: isMobile ? 1.5 : 2,
-          physics: const NeverScrollableScrollPhysics(),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _StatCard(
-              title: 'Tổng bài luyện',
-              value: totalRecordings.toString(),
-              icon: Icons.book_outlined,
-              color: AppColors.primary,
-            ),
-            _StatCard(
-              title: 'Điểm TB',
-              value: avgScore.toStringAsFixed(1),
-              icon: Icons.star_outline,
-              color: AppColors.warning,
-            ),
-            _StatCard(
-              title: 'Tuần này',
-              value: todayRecordings.toString(),
-              icon: Icons.today_outlined,
-              color: AppColors.success,
-            ),
-            _StatCard(
-              title: 'Tổng thời gian',
-              value: '${totalMinutes}m',
-              icon: Icons.timer_outlined,
-              color: AppColors.secondary,
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-
-        // Filter and Sort
-        Row(
-          children: [
-            const Text(
-              'Lọc và sắp xếp:',
+            Text(
+              'Lịch sử luyện tập',
               style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.gray700,
+                fontSize: isMobile ? 24 : 32,
+                fontWeight: FontWeight.bold,
+                color: AppColors.gray900,
               ),
             ),
-            const SizedBox(width: 12),
-            _FilterChip(
-              label: 'Ngày (mới nhất)',
-              isSelected: true,
-              onTap: () {},
+            const SizedBox(height: 8),
+            const Text(
+              'Xem lại các bài luyện nói và theo dõi tiến độ',
+              style: TextStyle(fontSize: 16, color: AppColors.gray600),
             ),
-            const SizedBox(width: 8),
-            _FilterChip(
-              label: 'Tất cả điểm',
-              isSelected: false,
-              onTap: () {},
+            const SizedBox(height: 24),
+
+            // Stats
+            GridView.count(
+              crossAxisCount: isMobile ? 2 : 4,
+              shrinkWrap: true,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: isMobile ? 1.5 : 2,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                _StatCard(title: 'Tổng bài luyện', value: totalRecordings.toString(), icon: Icons.book_outlined, color: AppColors.primary),
+                _StatCard(title: 'Điểm TB', value: avgScore.toStringAsFixed(1), icon: Icons.star_outline, color: AppColors.warning),
+                _StatCard(title: 'Hôm nay', value: todayRecordings.toString(), icon: Icons.today_outlined, color: AppColors.success),
+                _StatCard(title: 'Tổng thời gian', value: '${totalMinutes}m', icon: Icons.timer_outlined, color: AppColors.secondary),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Content
+            Expanded(
+              child: snapshot.connectionState == ConnectionState.waiting
+                  ? const Center(child: CircularProgressIndicator())
+                  : snapshot.hasError
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                              const SizedBox(height: 16),
+                              Text('${snapshot.error}', textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => setState(() => _loadHistory()),
+                                child: const Text('Thử lại'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : recordings.isEmpty
+                          ? const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.history, size: 64, color: AppColors.gray300),
+                                  SizedBox(height: 16),
+                                  Text('Chưa có bài luyện nào', style: TextStyle(fontSize: 16, color: AppColors.gray500)),
+                                ],
+                              ),
+                            )
+                          : RefreshIndicator(
+                              onRefresh: () async => setState(() => _loadHistory()),
+                              child: ListView.separated(
+                                itemCount: recordings.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                                itemBuilder: (context, index) {
+                                  final recording = recordings[index];
+                                  return _RecordingCard(
+                                    recording: recording,
+                                    onTap: () => widget.onViewRecording(recording),
+                                  );
+                                },
+                              ),
+                            ),
             ),
           ],
-        ),
-        const SizedBox(height: 16),
-
-        // Recordings List
-        Expanded(
-          child: _recordings.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.history,
-                        size: 64,
-                        color: AppColors.gray300,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Chưa có bài luyện nào',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.separated(
-                  itemCount: _recordings.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final recording = _recordings[index];
-                    return _RecordingCard(
-                      recording: recording,
-                      onTap: () => onViewRecording(recording),
-                    );
-                  },
-                ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -270,44 +219,6 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.gray900 : AppColors.white,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: isSelected ? AppColors.gray900 : AppColors.gray300,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? AppColors.white : AppColors.gray700,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _RecordingCard extends StatelessWidget {
   final Recording recording;
   final VoidCallback onTap;

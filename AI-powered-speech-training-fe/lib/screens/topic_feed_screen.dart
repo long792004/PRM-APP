@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/topic.dart';
+import '../models/exam.dart';
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
 
 class TopicFeedScreen extends StatefulWidget {
-  final Function(Topic) onSelectTopic;
+  final Function(IeltsExam) onSelectTopic;
 
   const TopicFeedScreen({
     super.key,
@@ -15,76 +16,24 @@ class TopicFeedScreen extends StatefulWidget {
 }
 
 class _TopicFeedScreenState extends State<TopicFeedScreen> {
-  TopicLevel? _selectedLevel;
   final TextEditingController _searchController = TextEditingController();
+  late Future<List<IeltsExam>> _examsFuture;
 
-  // Mock data - replace with real data from API
-  final List<Topic> _mockTopics = [
-    Topic(
-      id: '1',
-      title: 'Travel and Tourism',
-      prompt: 'Discuss your travel experiences and favorite destinations',
-      level: TopicLevel.intermediate,
-      tags: ['IELTS', 'Daily'],
-      questions: [
-        'What is your favorite place to visit?',
-        'How do you usually plan your trips?',
-        'What makes a destination worth visiting?',
-      ],
-      duration: '5-7 phút',
-      createdAt: '2026-01-15',
-    ),
-    Topic(
-      id: '2',
-      title: 'Job Interview Preparation',
-      prompt: 'Practice common job interview questions and scenarios',
-      level: TopicLevel.advanced,
-      tags: ['Interview', 'Professional'],
-      questions: [
-        'Tell me about yourself',
-        'What are your strengths and weaknesses?',
-        'Where do you see yourself in 5 years?',
-      ],
-      duration: '3-5 phút',
-      createdAt: '2026-01-14',
-    ),
-    Topic(
-      id: '3',
-      title: 'Technology and Innovation',
-      prompt: 'Discuss the impact of technology on daily life',
-      level: TopicLevel.intermediate,
-      tags: ['IELTS', 'Current Affairs'],
-      questions: [
-        'How has technology changed your life?',
-        'What technology do you use most?',
-        'What are the downsides of modern technology?',
-      ],
-      duration: '5-7 phút',
-      createdAt: '2026-01-13',
-    ),
-    Topic(
-      id: '4',
-      title: 'Daily Routine and Habits',
-      prompt: 'Describe your daily activities and lifestyle',
-      level: TopicLevel.beginner,
-      tags: ['Daily', 'Basic'],
-      questions: [
-        'What time do you wake up?',
-        'What do you usually do in the morning?',
-        'Do you have any special routines?',
-      ],
-      duration: '3-5 phút',
-      createdAt: '2026-01-12',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadExams();
+  }
 
-  List<Topic> get _filteredTopics {
-    return _mockTopics.where((topic) {
-      if (_selectedLevel != null && topic.level != _selectedLevel) {
-        return false;
-      }
+  void _loadExams() {
+    _examsFuture = ApiService.getExams().then((data) =>
+        data.map((json) => IeltsExam.fromJson(json as Map<String, dynamic>)).toList());
+  }
+
+  List<IeltsExam> _filterExams(List<IeltsExam> exams) {
+    return exams.where((exam) {
       if (_searchController.text.isNotEmpty) {
-        return topic.title
+        return exam.title
             .toLowerCase()
             .contains(_searchController.text.toLowerCase());
       }
@@ -101,7 +50,7 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
       children: [
         // Header
         Text(
-          'Chọn Topic luyện tập',
+          'Chọn Đề Thi Luyện Tập',
           style: TextStyle(
             fontSize: isMobile ? 24 : 32,
             fontWeight: FontWeight.bold,
@@ -110,7 +59,7 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Chọn một chủ đề để bắt đầu luyện nói',
+          'Chọn một bộ đề thi mô phỏng để bắt đầu đánh giá kỹ năng của bạn',
           style: TextStyle(
             fontSize: 16,
             color: AppColors.gray600,
@@ -118,148 +67,81 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
         ),
         const SizedBox(height: 24),
 
-        // Search and Filters
-        isMobile
-            ? Column(
-                children: [
-                  TextField(
-                    controller: _searchController,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      hintText: 'Tìm kiếm topic...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, color: AppColors.gray400),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {});
-                              },
-                            )
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _LevelChip(
-                          label: 'Tất cả',
-                          isSelected: _selectedLevel == null,
-                          onTap: () => setState(() => _selectedLevel = null),
-                        ),
-                        const SizedBox(width: 8),
-                        _LevelChip(
-                          label: 'Beginner',
-                          color: AppColors.beginnerColor,
-                          isSelected: _selectedLevel == TopicLevel.beginner,
-                          onTap: () => setState(() => _selectedLevel = TopicLevel.beginner),
-                        ),
-                        const SizedBox(width: 8),
-                        _LevelChip(
-                          label: 'Intermediate',
-                          color: AppColors.intermediateColor,
-                          isSelected: _selectedLevel == TopicLevel.intermediate,
-                          onTap: () =>
-                              setState(() => _selectedLevel = TopicLevel.intermediate),
-                        ),
-                        const SizedBox(width: 8),
-                        _LevelChip(
-                          label: 'Advanced',
-                          color: AppColors.advancedColor,
-                          isSelected: _selectedLevel == TopicLevel.advanced,
-                          onTap: () => setState(() => _selectedLevel = TopicLevel.advanced),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  // Search
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        hintText: 'Tìm kiếm topic...',
-                        prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear, color: AppColors.gray400),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {});
-                                },
-                              )
-                            : null,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  
-                  // Level Filters
-                  _LevelChip(
-                    label: 'Tất cả',
-                    isSelected: _selectedLevel == null,
-                    onTap: () => setState(() => _selectedLevel = null),
-                  ),
-                  const SizedBox(width: 8),
-                  _LevelChip(
-                    label: 'Beginner',
-                    color: AppColors.beginnerColor,
-                    isSelected: _selectedLevel == TopicLevel.beginner,
-                    onTap: () => setState(() => _selectedLevel = TopicLevel.beginner),
-                  ),
-                  const SizedBox(width: 8),
-                  _LevelChip(
-                    label: 'Intermediate',
-                    color: AppColors.intermediateColor,
-                    isSelected: _selectedLevel == TopicLevel.intermediate,
-                    onTap: () =>
-                        setState(() => _selectedLevel = TopicLevel.intermediate),
-                  ),
-                  const SizedBox(width: 8),
-                  _LevelChip(
-                    label: 'Advanced',
-                    color: AppColors.advancedColor,
-                    isSelected: _selectedLevel == TopicLevel.advanced,
-                    onTap: () => setState(() => _selectedLevel = TopicLevel.advanced),
-                  ),
-                ],
-              ),
+        // Search
+        TextField(
+          controller: _searchController,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            hintText: 'Tìm kiếm đề thi...',
+            prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, color: AppColors.gray400),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {});
+                    },
+                  )
+                : null,
+          ),
+        ),
         const SizedBox(height: 24),
 
-        // Topics Grid
+        // Exams Grid
         Expanded(
-          child: _filteredTopics.isEmpty
-              ? Center(
-                  child: Text(
-                    'Không tìm thấy topic nào',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.gray500,
-                    ),
+          child: FutureBuilder<List<IeltsExam>>(
+            future: _examsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                      const SizedBox(height: 16),
+                      Text('Lỗi: ${snapshot.error}', textAlign: TextAlign.center),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => setState(() => _loadExams()),
+                        child: const Text('Thử lại'),
+                      ),
+                    ],
                   ),
-                )
-              : GridView.builder(
+                );
+              }
+              final filtered = _filterExams(snapshot.data ?? []);
+              if (filtered.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'Không tìm thấy đề thi nào',
+                    style: TextStyle(fontSize: 16, color: AppColors.gray500),
+                  ),
+                );
+              }
+              return RefreshIndicator(
+                onRefresh: () async => setState(() => _loadExams()),
+                child: GridView.builder(
                   gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 400,
                     childAspectRatio: isMobile ? 0.8 : 1.2,
                     crossAxisSpacing: 20,
                     mainAxisSpacing: 20,
                   ),
-                  itemCount: _filteredTopics.length,
+                  itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    final topic = _filteredTopics[index];
-                    return _TopicCard(
-                      topic: topic,
-                      onTap: () => widget.onSelectTopic(topic),
+                    final exam = filtered[index];
+                    return _ExamCard(
+                      exam: exam,
+                      onTap: () => widget.onSelectTopic(exam),
                     );
                   },
                 ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -272,83 +154,20 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
   }
 }
 
-class _LevelChip extends StatelessWidget {
-  final String label;
-  final Color? color;
-  final bool isSelected;
+class _ExamCard extends StatelessWidget {
+  final IeltsExam exam;
   final VoidCallback onTap;
 
-  const _LevelChip({
-    required this.label,
-    this.color,
-    required this.isSelected,
+  const _ExamCard({
+    required this.exam,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (color ?? AppColors.gray900)
-              : AppColors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? (color ?? AppColors.gray900)
-                : AppColors.gray300,
-            width: 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? AppColors.white : AppColors.gray700,
-          ),
-        ),
-      ),
-    );
-  }
-}
+    final sections = exam.sections;
+    final totalQuestions = sections.fold<int>(0, (sum, sec) => sum + sec.questions.length);
 
-class _TopicCard extends StatelessWidget {
-  final Topic topic;
-  final VoidCallback onTap;
-
-  const _TopicCard({
-    required this.topic,
-    required this.onTap,
-  });
-
-  Color get _levelColor {
-    switch (topic.level) {
-      case TopicLevel.beginner:
-        return AppColors.beginnerColor;
-      case TopicLevel.intermediate:
-        return AppColors.intermediateColor;
-      case TopicLevel.advanced:
-        return AppColors.advancedColor;
-    }
-  }
-
-  Color get _levelBgColor {
-    switch (topic.level) {
-      case TopicLevel.beginner:
-        return AppColors.beginnerBg;
-      case TopicLevel.intermediate:
-        return AppColors.intermediateBg;
-      case TopicLevel.advanced:
-        return AppColors.advancedBg;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -358,13 +177,13 @@ class _TopicCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title and Level
+              // Title and Type
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Text(
-                      topic.title,
+                      exam.title,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -376,18 +195,17 @@ class _TopicCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _levelBgColor,
+                      color: AppColors.primaryBg,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      topic.level.displayName,
-                      style: TextStyle(
+                      exam.type,
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: _levelColor,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
@@ -395,9 +213,8 @@ class _TopicCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Description
               Text(
-                topic.prompt,
+                'Bộ đề thi gồm ${sections.length} bài thi thành phần.\nVui lòng nhấn Bắt đầu để vào thi.',
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.gray600,
@@ -408,41 +225,30 @@ class _TopicCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Tags
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: topic.tags
-                    .map((tag) => Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.gray100,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.tag,
-                                size: 12,
-                                color: AppColors.gray600,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                tag,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.gray600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ))
-                    .toList(),
+                children: sections.map((sec) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.gray100,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_outline, size: 12, color: AppColors.gray600),
+                      const SizedBox(width: 4),
+                      Text(
+                        sec.skill,
+                        style: const TextStyle(fontSize: 11, color: AppColors.gray600),
+                      ),
+                    ],
+                  ),
+                )).toList(),
               ),
+              
               const Spacer(),
-
               const Divider(),
               const SizedBox(height: 8),
 
@@ -455,36 +261,11 @@ class _TopicCard extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 16,
-                        color: AppColors.gray500,
-                      ),
+                      const Icon(Icons.chat_bubble_outline, size: 16, color: AppColors.gray500),
                       const SizedBox(width: 4),
                       Text(
-                        topic.duration,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.gray600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.chat_bubble_outline,
-                        size: 16,
-                        color: AppColors.gray500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${topic.questions.length} câu hỏi',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.gray600,
-                        ),
+                        '$totalQuestions câu hỏi',
+                        style: const TextStyle(fontSize: 12, color: AppColors.gray600),
                       ),
                     ],
                   ),
@@ -495,10 +276,7 @@ class _TopicCard extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                       ),
-                      child: const Text(
-                        'Bắt đầu luyện tập',
-                        style: TextStyle(fontSize: 12),
-                      ),
+                      child: const Text('Bắt đầu làm bài', style: TextStyle(fontSize: 12)),
                     ),
                   ),
                 ],

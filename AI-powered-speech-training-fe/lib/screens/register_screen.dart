@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Function(String) onLoginSuccess;
@@ -21,38 +22,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
   
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-  
-  // Register is only for 'user' / 'Học viên'
-  final String _selectedRole = 'user'; 
+  bool _isLoading = false;
 
-  void _handleRegister() {
-    // In a real app, we validate credentials here.
-    if (_nameController.text.isNotEmpty && 
-        _emailController.text.isNotEmpty && 
-        _passwordController.text.isNotEmpty &&
-        _confirmPasswordController.text.isNotEmpty) {
-       
-       if (_passwordController.text != _confirmPasswordController.text) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(
-             content: Text('Mật khẩu xác nhận không khớp!'),
-             backgroundColor: AppColors.error,
-           ),
-         );
-         return;
-       }
-       
-       // Success -> back to main screen or login
-       widget.onLoginSuccess(_selectedRole);
-       // Normally we'd navigate to root or show success message
-       Navigator.pop(context);
-    } else {
+  Future<void> _handleRegister() async {
+    if (_nameController.text.isEmpty || 
+        _emailController.text.isEmpty || 
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Vui lòng nhập đầy đủ thông tin!'),
           backgroundColor: AppColors.error,
         ),
       );
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mật khẩu xác nhận không khớp!'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await ApiService.register(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng ký thành công! Vui lòng đăng nhập.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -222,24 +243,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                             // Register Button
                             ElevatedButton(
-                              onPressed: _handleRegister,
+                              onPressed: _isLoading ? null : _handleRegister,
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
-                                backgroundColor: _selectedRole == 'admin' 
-                                    ? AppColors.secondary 
-                                    : AppColors.primary,
+                                backgroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 elevation: 0,
                               ),
-                              child: const Text(
-                                'Tạo tài khoản',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Tạo tài khoản',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                             ),
                           ],
                         ),
@@ -258,9 +286,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           style: TextButton.styleFrom(
-                            foregroundColor: _selectedRole == 'admin' 
-                                ? AppColors.secondary 
-                                : AppColors.primary,
+                            foregroundColor: AppColors.primary,
                             padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
                           ),

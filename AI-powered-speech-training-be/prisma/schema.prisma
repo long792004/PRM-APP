@@ -1,0 +1,136 @@
+// Prisma Schema - IELTS 4-Skills Training App
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── ENUMS ────────────────────────────────────────────────────────────────────
+
+enum ExamType {
+  MOCK_TEST
+  PRACTICE
+}
+
+enum Skill {
+  LISTENING
+  READING
+  WRITING
+  SPEAKING
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  FILL_BLANK
+  ESSAY
+  SPEAKING_PROMPT
+}
+
+enum SubmissionStatus {
+  PENDING
+  GRADED
+}
+
+// ─── MODELS ───────────────────────────────────────────────────────────────────
+
+/// Người dùng hệ thống. role = 'user' | 'admin'
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+
+  submissions Submission[]
+}
+
+/// Một bộ đề thi IELTS hoàn chỉnh (VD: Cambridge 18 Test 1)
+model IeltsExam {
+  id        String   @id @default(uuid())
+  title     String // VD: "Cam 18 Test 1"
+  type      ExamType @default(MOCK_TEST)
+  createdAt DateTime @default(now())
+
+  sections    ExamSection[]
+  submissions Submission[]
+}
+
+/// Một section trong bộ đề (Listening / Reading / Writing / Speaking)
+model ExamSection {
+  id     String    @id @default(uuid())
+  examId String
+  exam   IeltsExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  skill   Skill
+  /// JSON: đoạn văn đọc, URL audio nghe, hoặc context cho Writing/Speaking
+  content Json?
+
+  questions Question[]
+}
+
+/// Một câu hỏi cụ thể trong section
+model Question {
+  id        String      @id @default(uuid())
+  sectionId String
+  section   ExamSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  questionText   String
+  questionType   QuestionType
+  /// JSON: đáp án đúng (mảng String cho FILL_BLANK/MC, null cho ESSAY/SPEAKING)
+  correctAnswers Json?
+  /// JSON: options cho MULTIPLE_CHOICE e.g. ["A", "B", "C", "D"], hoặc thêm meta data khác
+  content        Json?
+
+  answerDetails AnswerDetail[]
+}
+
+/// Bài nộp của 1 user cho 1 bộ đề (toàn bộ 4 kỹ năng)
+model Submission {
+  id     String    @id @default(uuid())
+  userId String
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId String
+  exam   IeltsExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  totalBandScore Float?
+  status         SubmissionStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+
+  answerDetails AnswerDetail[]
+}
+
+/// Chi tiết câu trả lời cho từng câu hỏi trong bài nộp
+model AnswerDetail {
+  id           String     @id @default(uuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  userAnswer String? // Text answer (Reading/Writing/MC)
+  audioUrl   String? // URL file audio (Speaking)
+  isCorrect  Boolean? // null nếu chưa chấm (ESSAY/SPEAKING)
+
+  aiEvaluation AiEvaluation?
+}
+
+/// Kết quả chấm điểm AI cho từng câu (ESSAY hoặc SPEAKING)
+model AiEvaluation {
+  id             String       @id @default(uuid())
+  answerDetailId String       @unique
+  answerDetail   AnswerDetail @relation(fields: [answerDetailId], references: [id], onDelete: Cascade)
+
+  bandScore      Float
+  /// JSON cho Writing: { TA, CC, LR, GRA }
+  /// JSON cho Speaking: { Pronunciation, Fluency, Lexical, Grammar }
+  criteriaScores Json
+  feedback       String @db.Text
+  /// JSON: mảng các lỗi sai và gợi ý sửa
+  corrections    Json?
+
+  createdAt DateTime @default(now())
+}
