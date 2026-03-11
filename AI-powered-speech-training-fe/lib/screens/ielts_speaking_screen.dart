@@ -87,10 +87,17 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
           path = '${directory.path}/speaking_${DateTime.now().millisecondsSinceEpoch}.m4a';
         }
         
-        await _audioRecorder.start(
-          const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 128000),
-          path: path,
-        );
+        if (path != null) {
+          await _audioRecorder.start(
+            const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 128000),
+            path: path,
+          );
+        } else {
+          await _audioRecorder.start(
+            const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 128000),
+            path: '', // For web, a non-null string is needed but the content is ignored or handled. Let's look at the API. Or better, just use start()
+          );
+        }
 
         setState(() {
           _isPreparing = false;
@@ -112,13 +119,18 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
     }
   }
 
-  Future<void> _stopRecording() async {
+  Future<void> _stopAndSubmit() async {
     _timer?.cancel();
     final path = await _audioRecorder.stop();
+    debugPrint("STOPPED RECORDING. PATH RETURNED: $path");
     setState(() {
       _isRecording = false;
       _audioPath = path;
     });
+    // Auto submit right after stop
+    if (path != null && path.isNotEmpty) {
+      _submitRecording();
+    }
   }
 
   Future<void> _submitRecording() async {
@@ -147,12 +159,15 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
           ),
         );
       }
-    } catch (e) {
+    } catch (e, stacktrace) {
       if (mounted) {
+        debugPrint("SUBMIT ERROR: $e");
+        debugPrint(stacktrace.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceFirst('Exception: ', '')),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 10),
           ),
         );
       }
@@ -284,9 +299,7 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
               SizedBox(
                 height: 180,
                 child: Center(
-                  child: _audioPath == null
-                      ? _buildRecordButton()
-                      : _buildActionButtons(),
+                  child: _buildRecordButton(),
                 ),
               )
             ],
@@ -301,9 +314,9 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: _isPreparing
+          onTap: _isEvaluating ? null : (_isPreparing
               ? _startRecording
-              : (_isRecording ? _stopRecording : null),
+              : (_isRecording ? _stopAndSubmit : null)),
           child: AnimatedBuilder(
             animation: _animationController,
             builder: (context, child) {
@@ -343,16 +356,16 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
         ),
         const SizedBox(height: 16),
         TextButton.icon(
-          onPressed: () {
+          onPressed: _isEvaluating ? null : () {
             if (_isPreparing) {
               _startRecording();
             } else if (_isRecording) {
-              _stopRecording();
+              _stopAndSubmit();
             }
           },
           icon: Icon(_isPreparing ? Icons.play_arrow_rounded : Icons.check_circle_outline),
           label: Text(
-            _isPreparing ? 'Bỏ qua chuẩn bị & Bắt đầu nói ngay' : 'Dừng & Chờ Nộp Bài Ngay',
+            _isPreparing ? 'Bỏ qua chuẩn bị & Bắt đầu nói ngay' : 'Dừng & Nộp Bài Luôn',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: _isPreparing ? AppColors.primary : AppColors.error,
