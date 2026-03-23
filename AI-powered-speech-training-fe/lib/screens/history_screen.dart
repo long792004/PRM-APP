@@ -177,9 +177,21 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
       child: Padding(
-        padding: EdgeInsets.all(isMobile ? 12 : 20),
+        padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -190,9 +202,10 @@ class _StatCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.gray600,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.gray700,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -236,11 +249,24 @@ class _RecordingCard extends StatelessWidget {
     final durationStr =
         '${(recording.duration ~/ 60)}:${(recording.duration % 60).toString().padLeft(2, '0')}';
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.6),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          )
+        ],
+        border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
+      ),
       child: InkWell(
+        borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: isMobile
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,12 +344,21 @@ class _RecordingCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         IconButton(icon: const Icon(Icons.headphones), onPressed: () {}, tooltip: 'Nghe lại'),
-                        OutlinedButton.icon(
-                          onPressed: onTap,
-                          icon: const Icon(Icons.visibility, size: 18),
-                          label: const Text('Chi tiết'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: const LinearGradient(
+                              colors: [AppColors.primaryLight, AppColors.primary],
+                            ),
+                          ),
+                          child: OutlinedButton.icon(
+                            onPressed: onTap,
+                            icon: const Icon(Icons.visibility, size: 18, color: AppColors.white),
+                            label: const Text('Chi tiết', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide.none,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
                           ),
                         ),
                       ],
@@ -430,14 +465,20 @@ class _RecordingCard extends StatelessWidget {
                           onPressed: () {},
                           tooltip: 'Nghe lại',
                         ),
-                        OutlinedButton.icon(
-                          onPressed: onTap,
-                          icon: const Icon(Icons.visibility, size: 18),
-                          label: const Text('Xem chi tiết'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            gradient: const LinearGradient(
+                              colors: [AppColors.primaryLight, AppColors.primary],
+                            ),
+                          ),
+                          child: OutlinedButton.icon(
+                            onPressed: onTap,
+                            icon: const Icon(Icons.visibility, size: 18, color: AppColors.white),
+                            label: const Text('Xem chi tiết', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide.none,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             ),
                           ),
                         ),

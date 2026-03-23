@@ -17,14 +17,14 @@ class RoleSelectionScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              AppColors.primary.withOpacity(0.05),
-              AppColors.white,
-              AppColors.secondary.withOpacity(0.05),
+              Color(0xFFEFF6FF),
+              Color(0xFFFFFFFF),
             ],
+            stops: [0.0, 0.4],
           ),
         ),
         child: SafeArea(
@@ -204,27 +204,24 @@ class _RoleCardState extends State<_RoleCard> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 250),
           decoration: BoxDecoration(
             color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: _isHovered
-                  ? widget.iconColor
-                  : AppColors.gray200,
-              width: _isHovered ? 2 : 1,
+              color: _isHovered ? widget.iconColor.withOpacity(0.5) : Colors.transparent,
+              width: 1,
             ),
-            boxShadow: _isHovered
-                ? [
-                    BoxShadow(
-                      color: widget.iconColor.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : [],
+            boxShadow: [
+              BoxShadow(
+                color: widget.iconColor.withOpacity(_isHovered ? 0.15 : 0.05),
+                blurRadius: _isHovered ? 30 : 20,
+                offset: Offset(0, _isHovered ? 12 : 8),
+                spreadRadius: _isHovered ? 2 : 0,
+              ),
+            ],
           ),
-          padding: EdgeInsets.all(isMobile ? 20 : 32),
+          padding: EdgeInsets.all(isMobile ? 24 : 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -280,8 +277,23 @@ class _RoleCardState extends State<_RoleCard> {
               const SizedBox(height: 24),
 
               // Button
-              SizedBox(
+              Container(
                 width: double.infinity,
+                decoration: widget.isOutlined ? null : BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [widget.iconColor.withOpacity(0.7), widget.iconColor],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: widget.iconColor.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    )
+                  ],
+                ),
                 child: widget.isOutlined
                     ? OutlinedButton(
                         onPressed: widget.onTap,
@@ -289,26 +301,31 @@ class _RoleCardState extends State<_RoleCard> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           side: BorderSide(color: widget.iconColor, width: 1.5),
                           foregroundColor: widget.iconColor,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                         child: Text(
                           widget.buttonText,
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       )
                     : ElevatedButton(
                         onPressed: widget.onTap,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: widget.iconColor,
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
                           padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                         child: Text(
                           widget.buttonText,
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),

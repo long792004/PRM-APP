@@ -12,6 +12,7 @@ import 'screens/ielts_writing_screen.dart';
 import 'screens/ielts_reading_screen.dart';
 import 'screens/ielts_listening_screen.dart';
 import 'services/api_service.dart';
+import 'screens/exam_result_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -77,115 +78,97 @@ class _MainScreenState extends State<MainScreen> {
   void _handleSelectTopic(IeltsExam exam) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Chọn kỹ năng luyện tập',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                
-                // Speaking
-                if (exam.sections.any((s) => s.skill == 'SPEAKING')) ...[
-                  ListTile(
-                    leading: const Icon(Icons.mic, color: Colors.blue),
-                    title: const Text('Speaking'),
-                    subtitle: const Text('Luyện nói với AI (Trả kết quả biểu đồ)'),
-                    onTap: () {
-                      final sec = exam.sections.firstWhere((s) => s.skill == 'SPEAKING');
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => IeltsSpeakingScreen(
-                            questionId: sec.questions.isNotEmpty ? sec.questions.first.id : exam.id,
-                            prompt: sec.questions.isNotEmpty ? sec.questions.first.questionText : 'Speaking Prompt',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-                
-                // Writing
-                if (exam.sections.any((s) => s.skill == 'WRITING')) ...[
-                  ListTile(
-                    leading: const Icon(Icons.edit, color: Colors.green),
-                    title: const Text('Writing'),
-                    subtitle: const Text('Chấm điểm Essay tự động bằng AI'),
-                    onTap: () {
-                      final sec = exam.sections.firstWhere((s) => s.skill == 'WRITING');
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => IeltsWritingScreen(
-                            questionId: sec.questions.isNotEmpty ? sec.questions.first.id : exam.id,
-                            prompt: sec.questions.isNotEmpty ? sec.questions.first.questionText : 'Writing Prompt',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-
-                // Reading
-                if (exam.sections.any((s) => s.skill == 'READING')) ...[
-                  ListTile(
-                    leading: const Icon(Icons.book, color: Colors.orange),
-                    title: const Text('Reading'),
-                    subtitle: const Text('Luyện đọc, điền từ và trắc nghiệm'),
-                    onTap: () {
-                      final sec = exam.sections.firstWhere((s) => s.skill == 'READING');
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => IeltsReadingScreen(
-                            examId: exam.id,
-                            title: exam.title,
-                            passage: sec.content['readingPassage'] ?? '',
-                            questions: sec.questions.map((q) => q.toJson()).toList(),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-
-                // Listening
-                if (exam.sections.any((s) => s.skill == 'LISTENING')) ...[
-                  ListTile(
-                    leading: const Icon(Icons.headset, color: Colors.deepPurple),
-                    title: const Text('Listening'),
-                    subtitle: const Text('Nghe audio và làm trắc nghiệm'),
-                    onTap: () {
-                      final sec = exam.sections.firstWhere((s) => s.skill == 'LISTENING');
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => IeltsListeningScreen(
-                            examId: exam.id,
-                            title: exam.title,
-                            audioUrl: ApiService.getFullAudioUrl(sec.content['audioUrl']),
-                            questions: sec.questions.map((q) => q.toJson()).toList(),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ],
-            ),
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Luyện tập kỹ năng',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.gray900),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Chọn một kỹ năng IELTS bên dưới để bắt đầu bài thi mô phỏng.',
+                style: TextStyle(fontSize: 14, color: AppColors.gray600),
+              ),
+              const SizedBox(height: 24),
+              
+              // Skill list
+              _SkillTile(
+                icon: Icons.mic_rounded,
+                title: 'Speaking',
+                description: 'Luyện nói và nhận xét phát âm bởi AI',
+                color: Colors.blue,
+                visible: exam.sections.any((s) => s.skill == 'SPEAKING'),
+                onTap: () {
+                  final sec = exam.sections.firstWhere((s) => s.skill == 'SPEAKING');
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => IeltsSpeakingScreen(
+                    questionId: sec.questions.isNotEmpty ? sec.questions.first.id : exam.id,
+                    prompt: sec.questions.isNotEmpty ? sec.questions.first.questionText : 'Speaking Prompt',
+                  )));
+                },
+              ),
+              _SkillTile(
+                icon: Icons.edit_note_rounded,
+                title: 'Writing',
+                description: 'Viết luận và chấm điểm ngữ pháp tự động',
+                color: Colors.green,
+                visible: exam.sections.any((s) => s.skill == 'WRITING'),
+                onTap: () {
+                  final sec = exam.sections.firstWhere((s) => s.skill == 'WRITING');
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => IeltsWritingScreen(
+                    questionId: sec.questions.isNotEmpty ? sec.questions.first.id : exam.id,
+                    prompt: sec.questions.isNotEmpty ? sec.questions.first.questionText : 'Writing Prompt',
+                  )));
+                },
+              ),
+              _SkillTile(
+                icon: Icons.menu_book_rounded,
+                title: 'Reading',
+                description: 'Luyện đọc đoạn văn và trả lời câu hỏi',
+                color: Colors.orange,
+                visible: exam.sections.any((s) => s.skill == 'READING'),
+                onTap: () {
+                  final sec = exam.sections.firstWhere((s) => s.skill == 'READING');
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => IeltsReadingScreen(
+                    examId: exam.id,
+                    title: exam.title,
+                    passage: sec.content['readingPassage'] ?? '',
+                    questions: sec.questions.map((q) => q.toJson()).toList(),
+                  )));
+                },
+              ),
+              _SkillTile(
+                icon: Icons.headphones_rounded,
+                title: 'Listening',
+                description: 'Nghe audio hội thoại và làm bài tập',
+                color: Colors.deepPurple,
+                visible: exam.sections.any((s) => s.skill == 'LISTENING'),
+                onTap: () {
+                  final sec = exam.sections.firstWhere((s) => s.skill == 'LISTENING');
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => IeltsListeningScreen(
+                    examId: exam.id,
+                    title: exam.title,
+                    audioUrl: ApiService.getFullAudioUrl(sec.content['audioUrl']),
+                    questions: sec.questions.map((q) => q.toJson()).toList(),
+                  )));
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
         );
       },
@@ -193,53 +176,15 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _handleViewRecording(Recording recording) {
-    // Navigate to feedback screen
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text(recording.topicTitle),
-          ),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.feedback_rounded,
-                  size: 100,
-                  color: AppColors.success,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Feedback View',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  recording.topicTitle,
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Overall Score: ${recording.feedback.overall}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.success,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Quay lại'),
-                ),
-              ],
-            ),
-          ),
+        builder: (context) => ExamResultScreen(
+          resultData: {
+            'transcript': recording.transcript,
+            'feedback': recording.feedback.toJson(),
+            'topicTitle': recording.topicTitle,
+          },
         ),
       ),
     );
@@ -473,40 +418,101 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
-
     return Expanded(
       child: InkWell(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
                 color: isSelected ? AppColors.primary : Colors.transparent,
-                width: 2,
+                width: 3,
               ),
             ),
           ),
-          child: Row(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 icon,
-                size: isMobile ? 18 : 24,
-                color: isSelected ? AppColors.primary : AppColors.gray600,
+                size: 24,
+                color: isSelected ? AppColors.primary : AppColors.gray400,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? AppColors.primary : AppColors.gray600,
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : AppColors.gray500,
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkillTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String description;
+  final Color color;
+  final bool visible;
+  final VoidCallback onTap;
+
+  const _SkillTile({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.color,
+    required this.visible,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!visible) return const SizedBox.shrink();
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.gray200.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.gray900),
+          ),
+          subtitle: Text(
+            description,
+            style: const TextStyle(fontSize: 13, color: AppColors.gray600),
+          ),
+          trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          onTap: onTap,
         ),
       ),
     );

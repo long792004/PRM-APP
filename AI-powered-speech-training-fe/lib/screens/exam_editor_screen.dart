@@ -207,9 +207,21 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
           padding: const EdgeInsets.all(24),
           children: [
             // Thông tin chung
-            Card(
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.gray200.withOpacity(0.5),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  )
+                ],
+                border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
+              ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -245,11 +257,22 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
              ..._sections.asMap().entries.map((entry) {
                 int secIndex = entry.key;
                 var sec = entry.value;
-                return Card(
+                return Container(
                   margin: const EdgeInsets.only(bottom: 24),
-                  elevation: 2,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.06),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      )
+                    ],
+                    border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

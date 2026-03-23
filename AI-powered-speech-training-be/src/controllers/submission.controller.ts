@@ -53,6 +53,8 @@ export const submitSpeaking = async (req: AuthRequest, res: Response): Promise<v
             res.status(404).json({ error: error.message });
         } else if (error.status === 401 || error.message?.includes('API key')) {
             res.status(500).json({ error: 'Lỗi cấu hình AI. Vui lòng liên hệ admin.' });
+        } else if (error.message?.includes('API call failed')) {
+            res.status(500).json({ error: `Lỗi từ AI: ${error.message}` });
         } else {
             res.status(500).json({ error: 'Lỗi chấm điểm Speaking. Vui lòng thử lại.' });
         }
@@ -102,6 +104,8 @@ export const submitWriting = async (req: AuthRequest, res: Response): Promise<vo
             res.status(404).json({ error: error.message });
         } else if (error.status === 401 || error.message?.includes('API key')) {
             res.status(500).json({ error: 'Lỗi cấu hình AI. Vui lòng liên hệ admin.' });
+        } else if (error.message?.includes('API call failed')) {
+            res.status(500).json({ error: `Lỗi từ AI: ${error.message}` });
         } else {
             res.status(500).json({ error: 'Lỗi chấm điểm Writing. Vui lòng thử lại.' });
         }

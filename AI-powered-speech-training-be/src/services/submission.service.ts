@@ -22,12 +22,9 @@ export async function submitSpeaking(input: SpeakingSubmitInput) {
     if (!question) throw new Error('Câu hỏi không tồn tại');
 
     try {
-        // 1. Whisper: audio → text
-        const transcript = await AiService.transcribeAudio(audioFilePath);
-
-        // 2. GPT: chấm điểm Speaking
-        const evaluation = await AiService.evaluateSpeaking(
-            transcript,
+        // Combined AI Call: audio → transcript + evaluation
+        const evaluation = await AiService.evaluateSpeakingWithAudio(
+            audioFilePath,
             question.questionText,
         );
 

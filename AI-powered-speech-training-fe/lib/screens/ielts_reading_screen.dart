@@ -69,21 +69,33 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
     final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(color: AppColors.gray900)),
-        backgroundColor: AppColors.white,
+        title: Text(widget.title, style: const TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 22)),
+        backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: AppColors.gray900),
-        elevation: 1,
+        elevation: 0,
+        centerTitle: true,
       ),
-      backgroundColor: AppColors.gray50,
-      body: SafeArea(
-        child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFEFF6FF), Color(0xFFFFFFFF)],
+            stops: [0.0, 0.4],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+          ),
+        ),
       ),
     );
   }
 
-  // Trên Mobile, dùng Column hoặc CustomScrollView (dọc)
-  // Ở đây chia tỷ lệ màn hình trên dưới bằng Expanded
   Widget _buildMobileLayout() {
     return Column(
       children: [
@@ -91,7 +103,7 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
           flex: 1,
           child: _buildPassageView(),
         ),
-        const Divider(height: 1, thickness: 2, color: AppColors.gray300),
+        const SizedBox(height: 16),
         Expanded(
           flex: 1,
           child: _buildQuestionsView(),
@@ -100,7 +112,6 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
     );
   }
 
-  // Trên Desktop (màn to) nên chia đôi màn hình ngang
   Widget _buildDesktopLayout() {
     return Row(
       children: [
@@ -108,7 +119,7 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
           flex: 1,
           child: _buildPassageView(),
         ),
-        const VerticalDivider(width: 1, thickness: 2, color: AppColors.gray300),
+        const SizedBox(width: 24),
         Expanded(
           flex: 1,
           child: _buildQuestionsView(),
@@ -119,27 +130,69 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
 
   Widget _buildPassageView() {
     return Container(
-      color: AppColors.white,
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'READING PASSAGE',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                color: AppColors.primaryBg.withOpacity(0.5),
+                border: const Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'READING PASSAGE',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.gray900,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              widget.passage,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.8,
-                color: AppColors.gray900,
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  widget.passage,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.8,
+                    color: AppColors.gray800,
+                  ),
+                ),
               ),
             ),
           ],
@@ -150,22 +203,33 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
 
   Widget _buildQuestionsView() {
     return Container(
-      color: AppColors.gray50,
+      color: Colors.transparent,
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: AppColors.white,
-              border: Border(bottom: BorderSide(color: AppColors.gray200)),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.quiz_rounded, color: AppColors.primary, size: 20),
+                ),
+                const SizedBox(width: 16),
                 Text(
                   'Questions (1 - ${widget.questions.length})',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.gray900,
                   ),
@@ -176,7 +240,7 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: widget.questions.length + 1, // +1 cho Button Nộp bài ở cuối
+              itemCount: widget.questions.length + 1, // +1 for submit button
               itemBuilder: (context, index) {
                 if (index == widget.questions.length) {
                   return _buildSubmitButton();
@@ -197,12 +261,19 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
     final qType = question['questionType'] ?? 'MULTIPLE_CHOICE'; // FILL_BLANK, MULTIPLE_CHOICE
     final content = question['content']; // options for MC
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.gray200),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.5),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          )
+        ],
+        border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -300,22 +371,39 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
   Widget _buildSubmitButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0),
-      child: ElevatedButton.icon(
-        onPressed: _isSubmitting ? null : _submitAnswers,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            colors: [AppColors.primaryLight, AppColors.primary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          elevation: 2,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            )
+          ],
         ),
-        icon: _isSubmitting
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
-            : const Icon(Icons.check_circle_outline, color: AppColors.white),
-        label: Text(
-          _isSubmitting ? 'Đang nộp bài...' : 'Hoàn thành bài thi',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        child: ElevatedButton.icon(
+          onPressed: _isSubmitting ? null : _submitAnswers,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          icon: _isSubmitting
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
+              : const Icon(Icons.check_circle_rounded, color: AppColors.white),
+          label: Text(
+            _isSubmitting ? 'Đang nộp bài...' : 'Hoàn thành bài thi',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          ),
         ),
       ),
     );

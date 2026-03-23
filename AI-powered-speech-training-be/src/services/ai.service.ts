@@ -26,17 +26,26 @@ export interface SpeakingEvaluation extends FeedbackData {
 
 export interface WritingEvaluation extends FeedbackData { }
 
-// ─── 1. TRANSCRIBE AUDIO (Gemini 1.5 Flash) ──────────────────────────────────
+// ─── 1. EVALUATE SPEAKING WITH AUDIO (Gemini 2.5 Flash) ────────────────────
 
 /**
- * Chuyển file audio thành text bằng Gemini API
+ * Chấm điểm bài Speaking IELTS trực tiếp từ file audio (Multimodal)
  * @param audioFilePath Đường dẫn tuyệt đối đến file audio
+ * @param promptText    Câu hỏi / đề bài Speaking
  */
-export async function transcribeAudio(audioFilePath: string): Promise<string> {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const audioBytes = fs.readFileSync(audioFilePath);
+export async function evaluateSpeakingWithAudio(
+    audioFilePath: string,
+    promptText: string,
+): Promise<SpeakingEvaluation> {
+    const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-flash",
+        generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2,
+        }
+    });
 
-    // Lấy mimeType từ đuôi file. Default: mp3
+    const audioBytes = fs.readFileSync(audioFilePath);
     const mimeType = audioFilePath.endsWith('.webm') ? 'audio/webm' :
         audioFilePath.endsWith('.m4a') ? 'audio/mp4' :
             audioFilePath.endsWith('.mp4') ? 'audio/mp4' :
@@ -50,39 +59,23 @@ export async function transcribeAudio(audioFilePath: string): Promise<string> {
         }
     };
 
-    const response = await model.generateContent([
-        audioPart,
-        "Please provide a verbatim transcript of this audio in English. Do not add any extra comments."
-    ]);
-
-    return response.response.text().trim();
-}
-
-// ─── 2. EVALUATE SPEAKING ────────────────────────────────────────────────────
-
-/**
- * Chấm điểm bài Speaking IELTS theo 4 tiêu chí
- * @param transcript  Văn bản đã transcribe
- * @param promptText  Câu hỏi / đề bài Speaking
- */
-export async function evaluateSpeaking(
-    transcript: string,
-    promptText: string,
-): Promise<SpeakingEvaluation> {
-    const systemPrompt = `You are an expert IELTS Speaking examiner with 15+ years of experience.
-Your task is to evaluate a candidate's spoken response.
+    const systemPrompt = `You are an expert IELTS Speaking examiner.
+Evaluate the candidate's spoken response based on the audio provided.
 
 Evaluate strictly on these criteria (each scored 0-9 in 0.5 increments):
 1. Fluency – pace, hesitation, flow of speech
-2. Pronunciation – clarity, accent, intonation
-3. Grammar – range and accuracy of grammatical structures
-4. Vocabulary – range, precision, and naturalness of vocabulary
-5. Coherence – how well ideas are connected (score 0-9)
+2. Pronunciation – Is the pronunciation standard, clear, and accurate? (cách phát âm có chuẩn không)
+3. Grammar – Are the grammatical structures correct? Pay strict attention to grammatical errors. (ngữ pháp đúng chưa)
+4. Vocabulary – Is the vocabulary used grammatically correct in context? (từ vựng sử dụng đã đúng với ngữ pháp chưa)
+5. Coherence – how well ideas are connected
+
+CRITICAL INSTRUCTION: Be extremely strict. If the audio is very short, off-topic, or nonsensical, you MUST give a very low score (0 to 3) across all criteria. Do NOT give a default or middle score like 6.0 for poor, meaningless, or extremely short responses.
 
 The overall score is the average of these criteria, rounded to nearest 0.5.
 
-You MUST respond with ONLY valid JSON in this exact format matching the frontend App's Feedback model (no markdown, no extra text):
+You MUST respond with ONLY valid JSON in this exact format:
 {
+  "transcript": "<verbatim transcription of the audio>",
   "overall": <number 0-9>,
   "fluency": <number 0-9>,
   "pronunciation": <number 0-9>,
@@ -92,29 +85,19 @@ You MUST respond with ONLY valid JSON in this exact format matching the frontend
   "strengths": ["<strength 1>", "<strength 2>"],
   "issues": ["<issue 1>", "<issue 2>"],
   "suggestions": ["<suggestion 1>", "<suggestion 2>"]
-}
-Limit lists to 3-4 impactful items each.`;
+}`;
 
     const userMessage = `IELTS Speaking Prompt: "${promptText}"
+Please transcribe and evaluate the attached audio.`;
 
-Candidate's Transcript:
-"${transcript}"
-
-Please evaluate the above response.`;
-
-    const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
-        generationConfig: {
-            responseMimeType: "application/json",
-            temperature: 0.3,
-        }
-    });
-
-    const prompt = `${systemPrompt}\n\n${userMessage}`;
     try {
-        const response = await model.generateContent(prompt);
+        const response = await model.generateContent([
+            audioPart,
+            `${systemPrompt}\n\n${userMessage}`
+        ]);
         const content = response.response.text();
-        if (!content) throw new Error('Gemini trả về response rỗng cho Speaking evaluation');
+        if (!content) throw new Error('Gemini returned empty response for Speaking evaluation');
+        
         const result = JSON.parse(content);
         return {
             overall: result.overall,
@@ -126,23 +109,11 @@ Please evaluate the above response.`;
             strengths: result.strengths ?? [],
             issues: result.issues ?? [],
             suggestions: result.suggestions ?? [],
-            transcript,
+            transcript: result.transcript || "Transcription not available",
         };
     } catch (e: any) {
         console.error("Gemini Speaking evaluation failed:", e.message || e);
-        // Fallback mock data when API quota exceeded or error
-        return {
-            overall: 6.5,
-            fluency: 6.0,
-            pronunciation: 6.5,
-            grammar: 7.0,
-            vocabulary: 6.5,
-            coherence: 7.0,
-            strengths: ["Good effort to answer the prompt.", "Used some relevant vocabulary."],
-            issues: ["There might be hesitations.", "Some grammar inconsistencies."],
-            suggestions: ["Practice speaking naturally without long pauses.", "Expand vocabulary on this topic."],
-            transcript: transcript || "Mock transcript due to AI service error.",
-        };
+        throw new Error("API call failed: " + (e.message || "Unknown error"));
     }
 }
 
@@ -192,7 +163,7 @@ Candidate's Essay:
 Please evaluate the above essay.`;
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         generationConfig: {
             responseMimeType: "application/json",
             temperature: 0.3,
@@ -219,17 +190,6 @@ Please evaluate the above essay.`;
         };
     } catch (e: any) {
         console.error("Gemini Writing evaluation failed:", e.message || e);
-        // Fallback mock data
-        return {
-            overall: 6.5,
-            fluency: 6.5,
-            pronunciation: 6.5,
-            grammar: 7.0,
-            vocabulary: 6.0,
-            coherence: 6.5,
-            strengths: ["Clear structure of paragraphs.", "Adequate length."],
-            issues: ["Some complex sentences have grammatical errors."],
-            suggestions: ["Use more varied sentence structures.", "Pay attention to subject-verb agreement."],
-        };
+        throw new Error("API call failed: " + (e.message || "Unknown error"));
     }
 }

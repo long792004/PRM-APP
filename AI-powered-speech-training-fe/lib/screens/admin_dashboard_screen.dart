@@ -106,7 +106,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
         // Chart
         Expanded(
-          child: Card(
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.gray200.withOpacity(0.5),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                )
+              ],
+              border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -156,12 +168,23 @@ class _MetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         child: Padding(
-
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

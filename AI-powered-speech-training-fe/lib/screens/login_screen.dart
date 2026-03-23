@@ -67,14 +67,14 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              AppColors.primary.withOpacity(0.05),
-              AppColors.white,
-              AppColors.secondary.withOpacity(0.05),
+              Color(0xFFEFF6FF),
+              Color(0xFFFFFFFF),
             ],
+            stops: [0.0, 0.4],
           ),
         ),
         child: SafeArea(
@@ -114,12 +114,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 48),
 
                     // Login Card
-                    Card(
-                      elevation: 4,
-                      shadowColor: AppColors.black.withOpacity(0.05),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: AppColors.gray200, width: 1),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.06),
+                            blurRadius: 30,
+                            offset: const Offset(0, 10),
+                            spreadRadius: 0,
+                          ),
+                          BoxShadow(
+                            color: AppColors.gray200.withOpacity(0.5),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                       child: Padding(
                         padding: EdgeInsets.all(isMobile ? 24 : 32),
@@ -224,34 +235,52 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 24),
 
                             // Login Button
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                backgroundColor: _selectedRole == 'admin' 
-                                    ? AppColors.secondary 
-                                    : AppColors.primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                gradient: LinearGradient(
+                                  colors: _selectedRole == 'admin' 
+                                      ? [AppColors.secondaryLight, AppColors.secondary] 
+                                      : [AppColors.primaryLight, AppColors.primary],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
-                                elevation: 0,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (_selectedRole == 'admin' ? AppColors.secondary : AppColors.primary).withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  )
+                                ],
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppColors.white,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.white,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Đăng nhập',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
                                       ),
-                                    )
-                                  : const Text(
-                                      'Đăng nhập',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                              ),
                             ),
                           ],
                         ),

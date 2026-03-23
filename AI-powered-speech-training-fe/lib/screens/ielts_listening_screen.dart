@@ -170,25 +170,32 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(color: AppColors.gray900)),
-        backgroundColor: AppColors.white,
+        title: Text(widget.title, style: const TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 22)),
+        backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: AppColors.gray900),
         elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(100),
-          child: _buildAudioPlayerUI(),
-        ),
+        centerTitle: true,
       ),
-      backgroundColor: AppColors.gray50,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Divider(height: 1, thickness: 1, color: AppColors.gray200),
-            Expanded(
-              child: _buildQuestionsView(),
-            ),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFEFF6FF), Color(0xFFFFFFFF)],
+            stops: [0.0, 0.4],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAudioPlayerUI(),
+              Expanded(
+                child: _buildQuestionsView(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -196,8 +203,20 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
 
   Widget _buildAudioPlayerUI() {
     return Container(
-      color: AppColors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
       child: Column(
         children: [
           Row(
@@ -205,21 +224,21 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
             children: [
               Text(
                 _formatDuration(_position),
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray700),
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 15),
               ),
               Text(
                 _formatDuration(_duration),
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray700),
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.gray500, fontSize: 15),
               ),
             ],
           ),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+              trackHeight: 6,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
               activeTrackColor: AppColors.primary,
-              inactiveTrackColor: AppColors.primary.withOpacity(0.2),
+              inactiveTrackColor: AppColors.primary.withOpacity(0.15),
               thumbColor: AppColors.primary,
               overlayColor: AppColors.primary.withOpacity(0.1),
             ),
@@ -236,26 +255,39 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.replay_10, color: AppColors.gray800),
-                iconSize: 32,
+                icon: const Icon(Icons.replay_10_rounded, color: AppColors.gray700),
+                iconSize: 36,
                 onPressed: _seekBackward,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 24),
               Container(
-                decoration: const BoxDecoration(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary,
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primaryLight, AppColors.primary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
                 child: IconButton(
-                  icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: AppColors.white),
-                  iconSize: 32,
+                  icon: Icon(_isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: AppColors.white),
+                  iconSize: 36,
                   onPressed: _togglePlayPause,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 24),
               IconButton(
-                icon: const Icon(Icons.forward_10, color: AppColors.gray800),
-                iconSize: 32,
+                icon: const Icon(Icons.forward_10_rounded, color: AppColors.gray700),
+                iconSize: 36,
                 onPressed: _seekForward,
               ),
             ],
@@ -267,22 +299,33 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
 
   Widget _buildQuestionsView() {
     return Container(
-      color: AppColors.gray50,
+      color: Colors.transparent,
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: AppColors.white,
-              border: Border(bottom: BorderSide(color: AppColors.gray200)),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.quiz_rounded, color: AppColors.primary, size: 20),
+                ),
+                const SizedBox(width: 16),
                 Text(
                   'Questions (1 - ${widget.questions.length})',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.gray900,
                   ),
@@ -292,7 +335,7 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               itemCount: widget.questions.length + 1, // +1 for submit button
               itemBuilder: (context, index) {
                 if (index == widget.questions.length) {
@@ -314,12 +357,19 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
     final qType = question['questionType'] ?? 'MULTIPLE_CHOICE';
     final content = question['content'];
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.gray200),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.5),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          )
+        ],
+        border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -416,22 +466,39 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
   Widget _buildSubmitButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0),
-      child: ElevatedButton.icon(
-        onPressed: _isSubmitting ? null : _submitAnswers,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            colors: [AppColors.primaryLight, AppColors.primary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          elevation: 2,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            )
+          ],
         ),
-        icon: _isSubmitting
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
-            : const Icon(Icons.check_circle_outline, color: AppColors.white),
-        label: Text(
-          _isSubmitting ? 'Đang nộp bài...' : 'Hoàn thành bài thi',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        child: ElevatedButton.icon(
+          onPressed: _isSubmitting ? null : _submitAnswers,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          icon: _isSubmitting
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
+              : const Icon(Icons.check_circle_rounded, color: AppColors.white),
+          label: Text(
+            _isSubmitting ? 'Đang nộp bài...' : 'Hoàn thành bài thi',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          ),
         ),
       ),
     );

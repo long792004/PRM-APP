@@ -193,98 +193,169 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 600;
+    
+    // Define status configuration purely for UI variables
+    Color statusColor = _isPreparing ? AppColors.warning : (_isRecording ? AppColors.error : AppColors.success);
+    String statusText = _isPreparing ? 'Preparation Time' : (_isRecording ? 'Speaking Time' : 'Completed');
+    IconData statusIcon = _isPreparing ? Icons.timer_outlined : (_isRecording ? Icons.mic_none_outlined : Icons.check_circle_outline);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('IELTS Speaking Part 2', style: TextStyle(color: AppColors.gray900)),
-        backgroundColor: AppColors.white,
+        title: const Text('IELTS Speaking Part 2', 
+          style: TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 22)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.gray900),
-        elevation: 1,
+        centerTitle: true,
       ),
-      backgroundColor: AppColors.gray50,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(isMobile ? 16 : 32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Trạng thái Timer
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: _isPreparing 
-                      ? AppColors.warning.withOpacity(0.1) 
-                      : (_isRecording ? AppColors.error.withOpacity(0.1) : AppColors.success.withOpacity(0.1)),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _isPreparing 
-                        ? AppColors.warning 
-                        : (_isRecording ? AppColors.error : AppColors.success),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFEFF6FF), // soft blue top
+              Color(0xFFFFFFFF), // solid white bottom
+            ],
+            stops: [0.0, 0.4],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 40.0, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Floating Timer Pill
+                Center(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(40),
+                      boxShadow: [
+                        BoxShadow(
+                          color: statusColor.withOpacity(0.15),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                          spreadRadius: 2,
+                        ),
+                      ],
+                      border: Border.all(color: statusColor.withOpacity(0.3), width: 1.5),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(statusIcon, color: statusColor, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              statusText,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: statusColor,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatTime(_currentCountdown),
+                          style: TextStyle(
+                            fontSize: 42,
+                            fontWeight: FontWeight.w800,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: statusColor,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                child: Column(
-                  children: [
-                    Text(
-                      _isPreparing 
-                          ? 'Preparation Time' 
-                          : (_isRecording ? 'Speaking Time' : 'Completed'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _isPreparing 
-                            ? AppColors.warning 
-                            : (_isRecording ? AppColors.error : AppColors.success),
-                      ),
+                const SizedBox(height: 32),
+                
+                // Enhanced Cue Card
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.06),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
+                          spreadRadius: 0,
+                        ),
+                        BoxShadow(
+                          color: AppColors.gray200.withOpacity(0.5),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _formatTime(_currentCountdown),
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                        color: _isPreparing 
-                            ? AppColors.warning 
-                            : (_isRecording ? AppColors.error : AppColors.success),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Cue Card
-              Expanded(
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: SingleChildScrollView(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(
-                            children: const [
-                              Icon(Icons.assignment_ind_outlined, color: AppColors.primary),
-                              SizedBox(width: 8),
-                              Text(
-                                'Candidate Task Card',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
+                          // Card Header
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBg.withOpacity(0.5),
+                              border: const Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.assignment_ind_rounded, color: AppColors.primary, size: 22),
+                                ),
+                                const SizedBox(width: 16),
+                                const Text(
+                                  'Candidate Task Card',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.gray900,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Card Body
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(28.0),
+                              child: Text(
+                                widget.prompt,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  height: 1.8,
+                                  color: AppColors.gray800,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.3,
                                 ),
                               ),
-                            ],
-                          ),
-                          const Divider(height: 32),
-                          Text(
-                            widget.prompt,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              height: 1.8,
-                              color: AppColors.gray900,
                             ),
                           ),
                         ],
@@ -292,17 +363,13 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
+                const SizedBox(height: 40),
 
-              // Vùng Thu Âm
-              SizedBox(
-                height: 180,
-                child: Center(
-                  child: _buildRecordButton(),
-                ),
-              )
-            ],
+                // Record Area
+                _buildRecordButton(),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
@@ -321,105 +388,148 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
             animation: _animationController,
             builder: (context, child) {
               final scale = _isRecording ? 1.0 + (_animationController.value * 0.15) : 1.0;
-              return Transform.scale(
-                scale: scale,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _isRecording ? AppColors.error : AppColors.primary,
-                    boxShadow: [
-                      if (_isRecording)
+              final Color glowColor = _isRecording ? AppColors.error : AppColors.primary;
+              
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Outer Glow
+                  if (_isRecording || _isPreparing)
+                    Container(
+                      width: 100 * scale,
+                      height: 100 * scale,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: glowColor.withOpacity(_isRecording ? 0.2 : 0.05),
+                      ),
+                    ),
+                  // Inner Pulse
+                  if (_isRecording)
+                    Container(
+                      width: 85 * scale,
+                      height: 85 * scale,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: glowColor.withOpacity(0.3),
+                      ),
+                    ),
+                  // Main Button
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: _isRecording 
+                            ? [const Color(0xFFFF6B6B), AppColors.error]
+                            : [AppColors.primaryLight, AppColors.primary],
+                      ),
+                      boxShadow: [
                         BoxShadow(
-                          color: AppColors.error.withOpacity(0.5),
-                          blurRadius: 20 * _animationController.value,
-                          spreadRadius: 10 * _animationController.value,
+                          color: glowColor.withOpacity(0.4),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                          spreadRadius: _isRecording ? (_animationController.value * 5) : 0,
                         )
-                      else
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        )
-                    ],
+                      ],
+                    ),
+                    child: Icon(
+                      _isPreparing ? Icons.mic_rounded : (_isRecording ? Icons.stop_rounded : Icons.check_rounded),
+                      color: AppColors.white,
+                      size: 38,
+                    ),
                   ),
-                  child: Icon(
-                    _isPreparing ? Icons.mic : (_isRecording ? Icons.stop : Icons.mic),
-                    color: AppColors.white,
-                    size: 36,
-                  ),
-                ),
+                ],
               );
             },
           ),
         ),
-        const SizedBox(height: 16),
-        TextButton.icon(
-          onPressed: _isEvaluating ? null : () {
-            if (_isPreparing) {
-              _startRecording();
-            } else if (_isRecording) {
-              _stopAndSubmit();
-            }
-          },
-          icon: Icon(_isPreparing ? Icons.play_arrow_rounded : Icons.check_circle_outline),
-          label: Text(
-            _isPreparing ? 'Bỏ qua chuẩn bị & Bắt đầu nói ngay' : 'Dừng & Nộp Bài Luôn',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: _isPreparing ? AppColors.primary : AppColors.error,
+        const SizedBox(height: 24),
+        
+        // Action Text Button
+        if (_isPreparing || _isRecording)
+          InkWell(
+            onTap: _isEvaluating ? null : () {
+              if (_isPreparing) {
+                _startRecording();
+              } else if (_isRecording) {
+                _stopAndSubmit();
+              }
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(_isPreparing ? Icons.play_circle_fill_rounded : Icons.check_circle_rounded, 
+                    color: _isPreparing ? AppColors.primary : AppColors.error, 
+                    size: 20
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _isPreparing ? 'Bỏ qua chuẩn bị & Bắt đầu nói ngay' : 'Dừng & Nộp Bài',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: _isPreparing ? AppColors.primary : AppColors.error,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
+          )
+        else
+          _buildActionButtons(),
       ],
     );
   }
 
   Widget _buildActionButtons() {
-    return Column(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            OutlinedButton.icon(
-              onPressed: _isEvaluating
-                  ? null
-                  : () {
-                      setState(() {
-                        _audioPath = null;
-                        _isPreparing = true;
-                        _isRecording = false;
-                        _currentCountdown = _prepSeconds;
-                      });
-                      _startTimer();
-                    },
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Icons.refresh, color: AppColors.gray600),
-              label: const Text('Thu âm lại', style: TextStyle(color: AppColors.gray600)),
-            ),
-            const SizedBox(width: 16),
-            ElevatedButton.icon(
-              onPressed: _isEvaluating ? null : _submitRecording,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 2,
-              ),
-              icon: _isEvaluating
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
-                  : const Icon(Icons.send_rounded, color: AppColors.white),
-              label: Text(
-                _isEvaluating ? 'AI đang chấm...' : 'Nộp bài',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ),
-          ],
+        OutlinedButton.icon(
+          onPressed: _isEvaluating
+              ? null
+              : () {
+                  setState(() {
+                    _audioPath = null;
+                    _isPreparing = true;
+                    _isRecording = false;
+                    _currentCountdown = _prepSeconds;
+                  });
+                  _startTimer();
+                },
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            side: const BorderSide(color: AppColors.gray300, width: 1.5),
+            backgroundColor: AppColors.white,
+          ),
+          icon: const Icon(Icons.refresh_rounded, color: AppColors.gray700),
+          label: const Text('Thu âm lại', style: TextStyle(color: AppColors.gray800, fontWeight: FontWeight.bold, fontSize: 16)),
+        ),
+        const SizedBox(width: 16),
+        ElevatedButton.icon(
+          onPressed: _isEvaluating ? null : _submitRecording,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 8,
+            shadowColor: AppColors.primary.withOpacity(0.5),
+          ),
+          icon: _isEvaluating
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.white))
+              : const Icon(Icons.send_rounded, color: AppColors.white),
+          label: Text(
+            _isEvaluating ? 'AI Đang chấm...' : 'Nộp bài',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5),
+          ),
         ),
       ],
     );

@@ -68,21 +68,37 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
         const SizedBox(height: 24),
 
         // Search
-        TextField(
-          controller: _searchController,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            hintText: 'Tìm kiếm đề thi...',
-            prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear, color: AppColors.gray400),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() {});
-                    },
-                  )
-                : null,
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gray200.withOpacity(0.5),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(color: AppColors.gray200.withOpacity(0.3)),
+          ),
+          child: TextField(
+            controller: _searchController,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: 'Tìm kiếm đề thi...',
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: AppColors.gray400),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {});
+                      },
+                    )
+                  : null,
+            ),
           ),
         ),
         const SizedBox(height: 24),
@@ -168,12 +184,24 @@ class _ExamCard extends StatelessWidget {
     final sections = exam.sections;
     final totalQuestions = sections.fold<int>(0, (sum, sec) => sum + sec.questions.length);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.6),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          )
+        ],
+        border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
+      ),
       child: InkWell(
+        borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -269,14 +297,33 @@ class _ExamCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: 32,
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primaryLight, AppColors.primary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
                     child: ElevatedButton(
                       onPressed: onTap,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: const Text('Bắt đầu làm bài', style: TextStyle(fontSize: 12)),
+                      child: const Text('Bắt đầu làm bài', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.white, letterSpacing: 0.5)),
                     ),
                   ),
                 ],

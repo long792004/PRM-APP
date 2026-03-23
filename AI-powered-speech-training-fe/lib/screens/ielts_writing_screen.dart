@@ -120,22 +120,32 @@ class _IeltsWritingScreenState extends State<IeltsWritingScreen> {
     final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('IELTS Writing Task', style: TextStyle(color: AppColors.gray900)),
-        backgroundColor: AppColors.white,
+        title: const Text('IELTS Writing Task', style: TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 22)),
+        backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: AppColors.gray900),
-        elevation: 1,
+        elevation: 0,
+        centerTitle: true,
         actions: [
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: _secondsRemaining <= 300 ? AppColors.error.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_secondsRemaining <= 300 ? AppColors.error : AppColors.primary).withOpacity(0.15),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                   border: Border.all(
-                    color: _secondsRemaining <= 300 ? AppColors.error : AppColors.primary,
+                    color: _secondsRemaining <= 300 ? AppColors.error.withOpacity(0.5) : AppColors.primary.withOpacity(0.3),
+                    width: 1.5,
                   ),
                 ),
                 child: Row(
@@ -145,12 +155,14 @@ class _IeltsWritingScreenState extends State<IeltsWritingScreen> {
                       size: 18,
                       color: _secondsRemaining <= 300 ? AppColors.error : AppColors.primary,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
                     Text(
                       _formatTime(_secondsRemaining),
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
+                        fontFeatures: const [FontFeature.tabularFigures()],
                         color: _secondsRemaining <= 300 ? AppColors.error : AppColors.primary,
+                        letterSpacing: 1,
                       ),
                     ),
                   ],
@@ -160,22 +172,37 @@ class _IeltsWritingScreenState extends State<IeltsWritingScreen> {
           )
         ],
       ),
-      body: SafeArea(
-        child: Container(
-          color: AppColors.gray50,
-          padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFEFF6FF), Color(0xFFFFFFFF)],
+            stops: [0.0, 0.4],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Prompt Card
-              Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.gray200),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.06),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    )
+                  ],
+                  border: Border.all(color: AppColors.primary.withOpacity(0.1)),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(24.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -204,13 +231,21 @@ class _IeltsWritingScreenState extends State<IeltsWritingScreen> {
               
               // Editing Area
               Expanded(
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.gray200.withOpacity(0.5),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      )
+                    ],
+                    border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(24.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -244,28 +279,46 @@ class _IeltsWritingScreenState extends State<IeltsWritingScreen> {
                                   color: AppColors.gray600,
                                 ),
                               ),
-                              ElevatedButton.icon(
-                                onPressed: _isSubmitting ? null : _submitEssay,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: const LinearGradient(
+                                    colors: [AppColors.primaryLight, AppColors.primary],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 12,
-                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    )
+                                  ],
                                 ),
-                                icon: _isSubmitting 
-                                    ? const SizedBox(
-                                        width: 16, 
-                                        height: 16, 
-                                        child: CircularProgressIndicator(color: AppColors.white, strokeWidth: 2)
-                                      )
-                                    : const Icon(Icons.send_rounded, size: 18),
-                                label: Text(
-                                  _isSubmitting ? 'Đang chấm điểm...' : 'Nộp bài',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                child: ElevatedButton.icon(
+                                  onPressed: _isSubmitting ? null : _submitEssay,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  icon: _isSubmitting 
+                                      ? const SizedBox(
+                                          width: 18, 
+                                          height: 18, 
+                                          child: CircularProgressIndicator(color: AppColors.white, strokeWidth: 2.5)
+                                        )
+                                      : const Icon(Icons.send_rounded, size: 20, color: AppColors.white),
+                                  label: Text(
+                                    _isSubmitting ? 'Đang chấm điểm...' : 'Nộp bài',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5, color: AppColors.white),
+                                  ),
                                 ),
                               ),
                             ],
@@ -279,6 +332,7 @@ class _IeltsWritingScreenState extends State<IeltsWritingScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

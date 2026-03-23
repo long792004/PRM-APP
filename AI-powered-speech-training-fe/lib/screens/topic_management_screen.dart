@@ -108,14 +108,34 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  SizedBox(
+                  Container(
                     width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primaryLight, AppColors.primary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        )
+                      ],
+                    ),
                     child: ElevatedButton.icon(
                       onPressed: () => _navigateToEditor(),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Tạo Đề Mới'),
+                      icon: const Icon(Icons.add, color: AppColors.white),
+                      label: const Text('Tạo Đề Mới', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white, letterSpacing: 0.5)),
                       style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
@@ -146,12 +166,34 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
                       ],
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () => _navigateToEditor(),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Tạo Đề Mới'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primaryLight, AppColors.primary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        )
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: () => _navigateToEditor(),
+                      icon: const Icon(Icons.add, color: AppColors.white),
+                      label: const Text('Tạo Đề Mới', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.white, letterSpacing: 0.5)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -250,9 +292,21 @@ class _ExamManagementCard extends StatelessWidget {
       } catch (_) {}
     }
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.5),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          )
+        ],
+        border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
+      ),
       child: Padding(
-        padding: EdgeInsets.all(isMobile ? 16 : 24),
+        padding: EdgeInsets.all(isMobile ? 20 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -22,19 +22,31 @@ class ExamResultScreen extends StatelessWidget {
     final List<String> suggestions = List<String>.from(feedback['suggestions'] ?? []);
     final List<String> strengths = List<String>.from(feedback['strengths'] ?? []);
 
+    final String title = resultData['topicTitle'] ?? 'Detailed Evaluation';
     final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Detailed Evaluation', style: TextStyle(color: AppColors.gray900)),
-        backgroundColor: AppColors.white,
-        elevation: 1,
+        title: Text(title, style: const TextStyle(color: AppColors.gray900, fontWeight: FontWeight.bold, fontSize: 18)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: AppColors.gray900),
       ),
-      backgroundColor: AppColors.gray50,
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFEFF6FF), Color(0xFFFFFFFF)],
+            stops: [0.0, 0.4],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -68,6 +80,8 @@ class ExamResultScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      ),
       ),
     );
   }
@@ -154,9 +168,19 @@ class ExamResultScreen extends StatelessWidget {
       ),
     );
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -180,9 +204,19 @@ class ExamResultScreen extends StatelessWidget {
     // otherwise fallback to normal text.
     
     // Convert transcript to lowercase for searching, but keep original for display
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -266,9 +300,19 @@ class ExamResultScreen extends StatelessWidget {
   Widget _buildCorrectionsSection(List<String> issues, List<String> suggestions) {
     final itemCount = issues.length > suggestions.length ? issues.length : suggestions.length;
     
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -338,9 +382,19 @@ class ExamResultScreen extends StatelessWidget {
   }
 
   Widget _buildStrengthsSection(List<String> strengths) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
