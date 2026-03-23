@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/exam.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -39,6 +42,7 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
               'options': q.content?['options'] ?? ['', '', '', ''],
             },
           }).toList(),
+          'pickedFile': null as PlatformFile?, // To store the newly picked file
         };
       }).toList();
     }
@@ -56,6 +60,7 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
         'skill': 'READING',
         'content': {'readingPassage': '', 'audioUrl': ''},
         'questions': [],
+        'pickedFile': null as PlatformFile?,
       });
     });
   }
@@ -71,11 +76,51 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
     });
   }
 
+  Future<void> _pickAudio(int sectionIndex) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+    );
+
+    if (result != null) {
+      setState(() {
+        _sections[sectionIndex]['pickedFile'] = result.files.first;
+        // Optionally update the audioUrl display to show the filename
+        _sections[sectionIndex]['content']['audioUrl'] = result.files.first.name;
+        _sections[sectionIndex]['content']['audioFileName'] = result.files.first.name;
+      });
+    }
+  }
+
   void _saveExam() async {
     if (!_formKey.currentState!.validate()) return;
     
+    List<http.MultipartFile> multipartFiles = [];
+
     // Xử lý list format options -> correctAnswers list
-    final formattedSections = _sections.map((sec) {
+    final formattedSections = await Future.wait(_sections.asMap().entries.map((entry) async {
+      int idx = entry.key;
+      var sec = entry.value;
+
+      // Nếu có picked file, thêm vào list multipart
+      if (sec['pickedFile'] != null) {
+        PlatformFile file = sec['pickedFile'];
+        if (kIsWeb) {
+          multipartFiles.add(http.MultipartFile.fromBytes(
+            'audio_$idx', // key name
+            file.bytes!,
+            filename: file.name,
+          ));
+        } else {
+          multipartFiles.add(await http.MultipartFile.fromPath(
+            'audio_$idx',
+            file.path!,
+            filename: file.name,
+          ));
+        }
+        // Gán audioFileName để BE dễ map
+        sec['content']['audioFileName'] = file.name;
+      }
+
       return {
         'skill': sec['skill'],
         'content': sec['content'],
@@ -108,7 +153,7 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
           };
         }).toList(),
       };
-    }).toList();
+    }));
 
     final payload = {
       'title': _titleController.text,
@@ -118,15 +163,15 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
 
     try {
       if (widget.exam == null) {
-        await ApiService.createExam(payload);
+        await ApiService.createExam(payload, files: multipartFiles);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('✅ Đã tạo Đề thi mới'), backgroundColor: AppColors.success),
           );
         }
       } else {
-        await ApiService.updateExam(widget.exam!.id, payload);
-         if (mounted) {
+        await ApiService.updateExam(widget.exam!.id, payload, files: multipartFiles);
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('✅ Đã cập nhật Đề thi'), backgroundColor: AppColors.success),
           );
@@ -246,10 +291,46 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
                             onChanged: (val) => sec['content']['readingPassage'] = val,
                           ),
                         if (sec['skill'] == 'LISTENING') 
-                          TextFormField(
-                            initialValue: sec['content']['audioUrl'],
-                            decoration: const InputDecoration(labelText: 'Audio URL (Link file ghi âm nguoibanho.mp3) *'),
-                            onChanged: (val) => sec['content']['audioUrl'] = val,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('File Nghe (Audio Source)', style: TextStyle(fontSize: 14, color: AppColors.gray600)),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: AppColors.gray300),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        sec['content']['audioUrl']?.isNotEmpty == true
+                                            ? sec['content']['audioUrl']
+                                            : 'Chưa chọn file audio',
+                                        style: TextStyle(
+                                          color: sec['content']['audioUrl']?.isNotEmpty == true
+                                              ? AppColors.gray900
+                                              : AppColors.gray500,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton.icon(
+                                    onPressed: () => _pickAudio(secIndex),
+                                    icon: const Icon(Icons.upload_file),
+                                    label: const Text('Tải lên'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: AppColors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                           
                         const SizedBox(height: 24),

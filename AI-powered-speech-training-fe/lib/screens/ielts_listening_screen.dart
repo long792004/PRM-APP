@@ -40,9 +40,15 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
   void _initAudioPlayer() async {
     // Set source for the audio player
     try {
-      await _audioPlayer.setSourceUrl(widget.audioUrl);
+      debugPrint("Đang nạp audio URL: ${widget.audioUrl}");
+      await _audioPlayer.setSource(UrlSource(widget.audioUrl));
     } catch (e) {
       debugPrint("Lỗi tải âm thanh: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không thể tải file nghe: $e'), backgroundColor: AppColors.error),
+        );
+      }
     }
 
     _audioPlayer.onDurationChanged.listen((d) {
@@ -89,11 +95,23 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
     }
   }
 
-  void _togglePlayPause() {
-    if (_isPlaying) {
-      _audioPlayer.pause();
-    } else {
-      _audioPlayer.play(UrlSource(widget.audioUrl));
+  void _togglePlayPause() async {
+    try {
+      if (_isPlaying) {
+        await _audioPlayer.pause();
+      } else {
+        if (_duration == Duration.zero) {
+           // Nếu chưa load được duration, nỗ lực set lại source
+           await _audioPlayer.setSource(UrlSource(widget.audioUrl));
+        }
+        await _audioPlayer.resume();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi phát âm thanh: $e'), backgroundColor: AppColors.error),
+        );
+      }
     }
   }
 

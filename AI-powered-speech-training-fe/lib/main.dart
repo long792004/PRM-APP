@@ -176,7 +176,7 @@ class _MainScreenState extends State<MainScreen> {
                           builder: (context) => IeltsListeningScreen(
                             examId: exam.id,
                             title: exam.title,
-                            audioUrl: sec.content['audioUrl'] ?? '',
+                            audioUrl: ApiService.getFullAudioUrl(sec.content['audioUrl']),
                             questions: sec.questions.map((q) => q.toJson()).toList(),
                           ),
                         ),

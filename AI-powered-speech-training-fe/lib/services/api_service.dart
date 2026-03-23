@@ -7,6 +7,18 @@ import '../config/app_config.dart';
 class ApiService {
   static const String baseUrl = AppConfig.baseUrl;
 
+  /// Chuyển đổi path tương đối (/uploads/...) thành URL tuyệt đối (http://localhost:3000/uploads/...)
+  static String getFullAudioUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.startsWith('http')) return url; // Link ngoài (S3, Youtube, etc.)
+    
+    // Xóa '/api' ở cuối baseUrl để lấy Domain gốc
+    final rootUrl = baseUrl.replaceAll('/api', '');
+    // Đảm bảo không bị double slash
+    final cleanUrl = url.startsWith('/') ? url : '/$url';
+    return '$rootUrl$cleanUrl';
+  }
+
   // ─── TOKEN HELPERS ────────────────────────────────────────────────────────
 
   static Future<void> saveToken(String token) async {
@@ -93,28 +105,62 @@ class ApiService {
     throw Exception('Không thể tải bài thi');
   }
 
-  static Future<Map<String, dynamic>> createExam(Map<String, dynamic> data) async {
-    final headers = await _authHeaders();
-    final response = await http.post(
-      Uri.parse('$baseUrl/admin/exams'),
-      headers: headers,
-      body: jsonEncode(data),
-    );
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode == 201) return body;
-    throw Exception(body['error'] ?? 'Không thể tạo bài thi');
+  static Future<Map<String, dynamic>> createExam(Map<String, dynamic> data, {List<http.MultipartFile>? files}) async {
+    final token = await getToken();
+    
+    if (files == null || files.isEmpty) {
+      final headers = await _authHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/admin/exams'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 201) return body;
+      throw Exception(body['error'] ?? 'Không thể tạo bài thi');
+    } else {
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/admin/exams'));
+      if (token != null) request.headers['Authorization'] = 'Bearer $token';
+      
+      request.fields['examData'] = jsonEncode(data);
+      request.files.addAll(files);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      
+      if (response.statusCode == 201) return body;
+      throw Exception(body['error'] ?? 'Không thể tạo bài thi');
+    }
   }
 
-  static Future<Map<String, dynamic>> updateExam(String id, Map<String, dynamic> data) async {
-    final headers = await _authHeaders();
-    final response = await http.put(
-      Uri.parse('$baseUrl/admin/exams/$id'),
-      headers: headers,
-      body: jsonEncode(data),
-    );
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode == 200) return body;
-    throw Exception(body['error'] ?? 'Không thể cập nhật bài thi');
+  static Future<Map<String, dynamic>> updateExam(String id, Map<String, dynamic> data, {List<http.MultipartFile>? files}) async {
+    final token = await getToken();
+    
+    if (files == null || files.isEmpty) {
+      final headers = await _authHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/admin/exams/$id'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 200) return body;
+      throw Exception(body['error'] ?? 'Không thể cập nhật bài thi');
+    } else {
+      var request = http.MultipartRequest('PUT', Uri.parse('$baseUrl/admin/exams/$id'));
+      if (token != null) request.headers['Authorization'] = 'Bearer $token';
+      
+      request.fields['examData'] = jsonEncode(data);
+      request.files.addAll(files);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      
+      if (response.statusCode == 200) return body;
+      throw Exception(body['error'] ?? 'Không thể cập nhật bài thi');
+    }
   }
 
   static Future<void> deleteExam(String id) async {

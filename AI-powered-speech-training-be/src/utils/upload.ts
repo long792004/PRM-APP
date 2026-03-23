@@ -22,8 +22,8 @@ const ALLOWED_AUDIO_TYPES = [
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
     filename: (_req, file, cb) => {
-        const ext = path.extname(file.originalname) || '.webm';
-        const uniqueName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
+        const ext = path.extname(file.originalname);
+        const uniqueName = `upload_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`;
         cb(null, uniqueName);
     },
 });
@@ -31,15 +31,9 @@ const storage = multer.diskStorage({
 export const audioUpload = multer({
     storage,
     limits: {
-        fileSize: 25 * 1024 * 1024, // 25MB — giới hạn của Whisper API
+        fileSize: 100 * 1024 * 1024, // Tăng lên 100MB cho linh hoạt
     },
-    fileFilter: (_req, file, cb) => {
-        if (ALLOWED_AUDIO_TYPES.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error(`Định dạng file không hỗ trợ: ${file.mimetype}. Chỉ chấp nhận audio.`));
-        }
-    },
+    // Chấp nhận mọi loại file như yêu cầu của user
 });
 
 export const UPLOAD_URL_BASE = '/uploads';

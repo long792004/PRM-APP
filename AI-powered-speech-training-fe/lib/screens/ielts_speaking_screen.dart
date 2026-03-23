@@ -71,7 +71,7 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
             _startRecording();
           } else if (_isRecording) {
             // Tự động dừng thu âm
-            _stopRecording();
+            _stopAndSubmit();
           }
         }
       });
