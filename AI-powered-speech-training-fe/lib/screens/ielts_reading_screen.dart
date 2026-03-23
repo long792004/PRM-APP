@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import 'exam_result_screen.dart';
 
 class IeltsReadingScreen extends StatefulWidget {
   final String examId;
   final String title;
   final String passage;
   final List<dynamic> questions; // Danh sách câu hỏi từ API
+  final bool isPartOfFullExam;
 
   const IeltsReadingScreen({
     super.key,
@@ -14,6 +16,7 @@ class IeltsReadingScreen extends StatefulWidget {
     required this.title,
     required this.passage,
     required this.questions,
+    this.isPartOfFullExam = false,
   });
 
   @override
@@ -41,14 +44,17 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
     try {
       final result = await ApiService.submitObjective(widget.examId, answersPayload);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Nộp bài thành công! Bạn đúng ${result['correctCount']}/${result['totalQuestions']} câu (Band: ${result['bandScore']}).'),
-            backgroundColor: AppColors.success,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-        Navigator.pop(context, result);
+        if (widget.isPartOfFullExam) {
+          Navigator.pop(context, result);
+        } else {
+          // Thay vì pop, ta điều hướng sang màn hình kết quả chi tiết
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ExamResultScreen(resultData: result),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

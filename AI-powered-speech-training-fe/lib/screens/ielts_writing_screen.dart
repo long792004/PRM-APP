@@ -7,11 +7,13 @@ import 'exam_result_screen.dart';
 class IeltsWritingScreen extends StatefulWidget {
   final String questionId;
   final String prompt;
+  final bool isPartOfFullExam;
 
   const IeltsWritingScreen({
     super.key,
     required this.questionId,
     required this.prompt,
+    this.isPartOfFullExam = false,
   });
 
   @override
@@ -78,18 +80,22 @@ class _IeltsWritingScreenState extends State<IeltsWritingScreen> {
     try {
       final result = await ApiService.submitWriting(widget.questionId, essay);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nộp bài thành công!'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ExamResultScreen(resultData: result),
-          ),
-        );
+        if (widget.isPartOfFullExam) {
+          Navigator.pop(context, result);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Nộp bài thành công!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ExamResultScreen(resultData: result),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

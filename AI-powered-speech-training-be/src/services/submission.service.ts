@@ -36,6 +36,13 @@ export async function submitSpeaking(input: SpeakingSubmitInput) {
             submission = await prisma.submission.create({
                 data: { userId, examId: question.section.examId },
             });
+        } else {
+            // Update timestamp to bring to top of history
+            await prisma.submission.update({
+                where: { id: submission.id },
+                // @ts-ignore
+                data: { updatedAt: new Date() }
+            });
         }
 
         // 4. Tạo AnswerDetail
@@ -128,6 +135,12 @@ export async function submitWriting(input: WritingSubmitInput) {
     if (!submission) {
         submission = await prisma.submission.create({
             data: { userId, examId: question.section.examId },
+        });
+    } else {
+        await prisma.submission.update({
+            where: { id: submission.id },
+            // @ts-ignore
+            data: { updatedAt: new Date() }
         });
     }
 
@@ -258,6 +271,12 @@ export async function submitObjective(input: ObjectiveSubmitInput) {
         submission = await prisma.submission.create({
             data: { userId, examId },
         });
+    } else {
+        await prisma.submission.update({
+            where: { id: submission.id },
+            // @ts-ignore
+            data: { updatedAt: new Date() }
+        });
     }
 
     const answerDetailsData = [];
@@ -295,7 +314,7 @@ export async function submitObjective(input: ObjectiveSubmitInput) {
     const bandScore = calculateBandScore(correctCount, scaleTotal);
 
     // Save logic
-    const results = [];
+    const results: any[] = [];
     for (const adData of answerDetailsData) {
         const ad = await prisma.answerDetail.create({
             data: {
@@ -331,12 +350,26 @@ export async function submitObjective(input: ObjectiveSubmitInput) {
         data: { totalBandScore: bandScore, status: 'GRADED' },
     });
 
+    // Return format matching Speaking/Writing for FE consistency
     return {
-        submissionId: submission.id,
-        examId,
-        correctCount,
-        totalQuestions: scaleTotal,
-        bandScore,
-        details: results,
+        id: submission.id, // Using submission ID as result ID for objective
+        topicId: examId,
+        topicTitle: exam.title,
+        audioUrl: '', 
+        duration: 0,
+        createdAt: submission.createdAt.toISOString(),
+        transcript: `Bạn đã trả lời đúng ${correctCount}/${scaleTotal} câu hỏi.`,
+        feedback: {
+            overall: bandScore,
+            fluency: 0,
+            pronunciation: 0,
+            grammar: 0,
+            vocabulary: 0,
+            coherence: 0,
+            strengths: [`Đúng ${correctCount} câu`, `Tổng ${scaleTotal} câu`],
+            issues: results.filter(r => !r.isCorrect).map(r => `Câu ${results.indexOf(r) + 1} chưa chính xác`),
+            suggestions: [`Band Score ước tính: ${bandScore}`],
+            objectiveDetails: results // Trao thêm thông tin chi tiết cho FE
+        }
     };
 }

@@ -28,7 +28,8 @@ export const getHistory = async (req: AuthRequest, res: Response): Promise<void>
                 },
                 aiEvaluation: true
             },
-            orderBy: { submission: { createdAt: 'desc' } }
+            // @ts-ignore
+            orderBy: { submission: { updatedAt: 'desc' } }
         });
 
         // Map về mảng Recordings / Submissions cho HistoryScreen

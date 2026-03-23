@@ -13,6 +13,7 @@ import 'screens/ielts_reading_screen.dart';
 import 'screens/ielts_listening_screen.dart';
 import 'services/api_service.dart';
 import 'screens/exam_result_screen.dart';
+import 'screens/full_exam_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -101,6 +102,46 @@ class _MainScreenState extends State<MainScreen> {
                 style: TextStyle(fontSize: 14, color: AppColors.gray600),
               ),
               const SizedBox(height: 24),
+
+              if (exam.sections.length > 1) ...[
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.primary, AppColors.secondary],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => FullExamScreen(exam: exam)));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    icon: const Icon(Icons.star_rounded, color: Colors.white),
+                    label: const Text(
+                      'START FULL MOCK TEST',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Row(
+                  children: [
+                    Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text('HOẶC LUYỆN TẬP TỪNG PHẦN', style: TextStyle(fontSize: 12, color: AppColors.gray400, fontWeight: FontWeight.bold)),
+                    ),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
               
               // Skill list
               _SkillTile(

@@ -25,6 +25,12 @@ class ExamResultScreen extends StatelessWidget {
     final String title = resultData['topicTitle'] ?? 'Detailed Evaluation';
     final isMobile = MediaQuery.of(context).size.width < 600;
 
+    final Map<String, dynamic>? fullExamResults = feedback['fullExamResults'];
+    final List<dynamic>? objectiveDetails = feedback['objectiveDetails'];
+    
+    // Check if we should show the Radar Chart (only for Speaking/Writing usually)
+    final bool showRadar = fluency > 0 || pronunciation > 0 || grammar > 0 || vocabulary > 0 || coherence > 0;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -50,17 +56,27 @@ class ExamResultScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Chart & Overall Score Section
-              _buildScoreOverview(
-                overall: overall,
-                fluency: fluency,
-                pronunciation: pronunciation,
-                grammar: grammar,
-                vocabulary: vocabulary,
-                coherence: coherence,
-                isMobile: isMobile,
-              ),
+              // Overall Score Section (Always show)
+              if (fullExamResults != null)
+                _buildFullExamSummary(fullExamResults, overall, isMobile)
+              else if (showRadar)
+                _buildScoreOverview(
+                  overall: overall,
+                  fluency: fluency,
+                  pronunciation: pronunciation,
+                  grammar: grammar,
+                  vocabulary: vocabulary,
+                  coherence: coherence,
+                  isMobile: isMobile,
+                )
+              else
+                _buildSimpleScore(overall, isMobile),
+
               const SizedBox(height: 24),
+
+              // Objective Details Table
+              if (objectiveDetails != null && objectiveDetails.isNotEmpty)
+                _buildObjectiveDetailsTable(objectiveDetails),
 
               // Transcript & Highlights
               if (transcript.isNotEmpty)
@@ -427,6 +443,159 @@ class ExamResultScreen extends StatelessWidget {
                 ],
               ),
             )).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildSimpleScore(double overall, bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Estimated Band Score',
+            style: TextStyle(fontSize: 16, color: AppColors.gray600, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            overall.toStringAsFixed(1),
+            style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold, color: AppColors.primary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFullExamSummary(Map<String, dynamic> results, double overall, bool isMobile) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          )
+        ],
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            const Text(
+              'Full Mock Test Summary',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900),
+            ),
+            const SizedBox(height: 24),
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(2),
+                1: FlexColumnWidth(1),
+              },
+              children: [
+                ...results.entries.map((e) {
+                  final score = (e.value['feedback']?['overall'] as num?)?.toDouble() ?? 0.0;
+                  return TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(e.key, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(score.toStringAsFixed(1), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary), textAlign: TextAlign.right),
+                      ),
+                    ],
+                  );
+                }).toList(),
+                TableRow(
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: AppColors.gray200, width: 2)),
+                  ),
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Text('OVERALL BAND', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.secondary)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(overall.toStringAsFixed(1), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.secondary), textAlign: TextAlign.right),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildObjectiveDetailsTable(List<dynamic> details) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.5),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          )
+        ],
+        border: Border.all(color: AppColors.gray200.withOpacity(0.5)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Detailed Question Results',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.gray900),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(details.length, (index) {
+                final bool isCorrect = details[index]['isCorrect'] ?? false;
+                return Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isCorrect ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: isCorrect ? AppColors.success : AppColors.error),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        color: isCorrect ? AppColors.success : AppColors.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
           ],
         ),
       ),

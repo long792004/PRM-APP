@@ -12,11 +12,13 @@ import 'exam_result_screen.dart';
 class IeltsSpeakingScreen extends StatefulWidget {
   final String questionId;
   final String prompt; // Part 2 Cue Card content
+  final bool isPartOfFullExam;
 
   const IeltsSpeakingScreen({
     super.key,
     required this.questionId,
     required this.prompt,
+    this.isPartOfFullExam = false,
   });
 
   @override
@@ -146,18 +148,22 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
     try {
       final result = await ApiService.submitSpeaking(widget.questionId, _audioPath!);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nộp bài thành công!'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ExamResultScreen(resultData: result),
-          ),
-        );
+        if (widget.isPartOfFullExam) {
+          Navigator.pop(context, result);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Nộp bài thành công!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ExamResultScreen(resultData: result),
+            ),
+          );
+        }
       }
     } catch (e, stacktrace) {
       if (mounted) {

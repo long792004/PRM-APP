@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import 'exam_result_screen.dart';
 
 class IeltsListeningScreen extends StatefulWidget {
   final String examId;
   final String title;
   final String audioUrl;
   final List<dynamic> questions; // Danh sách câu hỏi từ API
+  final bool isPartOfFullExam;
 
   const IeltsListeningScreen({
     super.key,
@@ -15,6 +17,7 @@ class IeltsListeningScreen extends StatefulWidget {
     required this.title,
     required this.audioUrl,
     required this.questions,
+    this.isPartOfFullExam = false,
   });
 
   @override
@@ -138,14 +141,18 @@ class _IeltsListeningScreenState extends State<IeltsListeningScreen> {
       final result = await ApiService.submitObjective(widget.examId, answersPayload);
       if (mounted) {
         _audioPlayer.stop(); // Dừng nhạc khi nộp bài thành công
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Nộp bài thành công! Bạn đúng ${result['correctCount']}/${result['totalQuestions']} câu.'),
-            backgroundColor: AppColors.success,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-        Navigator.pop(context, result);
+        
+        if (widget.isPartOfFullExam) {
+          Navigator.pop(context, result);
+        } else {
+          // Thay vì pop, ta điều hướng sang màn hình kết quả chi tiết
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ExamResultScreen(resultData: result),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
