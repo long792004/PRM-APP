@@ -107,10 +107,20 @@ class _FullExamScreenState extends State<FullExamScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isCompleted) {
+      final skillNames = _sections.map((s) => s.skill.toLowerCase()).toList();
+      String skillsText = '';
+      if (skillNames.length > 1) {
+        skillsText = '${skillNames.sublist(0, skillNames.length - 1).join(', ')} và ${skillNames.last}';
+      } else if (skillNames.isNotEmpty) {
+        skillsText = skillNames.first;
+      }
+      
+      final message = 'Bạn đã hoàn thành xong ${skillNames.length} kỹ năng đó là $skillsText.';
+
       return ExamResultScreen(
         resultData: {
           'topicTitle': '${widget.exam.title} (Full Mock Test)',
-          'transcript': 'Bạn đã hoàn thành bài thi 4 kỹ năng.',
+          'transcript': message,
           'feedback': {
             'overall': _calculateOverallBand(),
             'fullExamResults': _allResults,
@@ -143,9 +153,9 @@ class _FullExamScreenState extends State<FullExamScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Bạn đang bắt đầu bài thi Mock Test đầy đủ. Vui lòng hoàn thành tất cả các phần thi để nhận điểm tổng kết.',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  Text(
+                    'Bạn đang bắt đầu bài thi với ${_sections.length} kỹ năng. Vui lòng hoàn thành tất cả các phần thi để nhận điểm tổng kết.',
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
