@@ -1,5 +1,9 @@
-import dotenv from 'dotenv';
-dotenv.config(); // PHẢI gọi trước khi import Prisma để DATABASE_URL có sẵn
+const envConfig = dotenv.config();
+if (envConfig.error) {
+    console.warn('⚠️  Warning: Cannot find .env file. Please create it from .env.example');
+} else if (Object.keys(envConfig.parsed || {}).length === 0) {
+    console.warn('⚠️  Warning: .env file found but it is EMPTY (0 variables). Please fill it!');
+}
 
 import express from 'express';
 import cors from 'cors';
