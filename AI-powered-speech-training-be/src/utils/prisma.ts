@@ -2,15 +2,16 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
-if (!process.env.DATABASE_URL) {
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
   console.error('❌ Error: DATABASE_URL is not defined in environment variables.');
   process.exit(1);
 }
 
 const pool = new pg.Pool({ 
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseUrl,
   ssl: {
-    rejectUnauthorized: false // Required for Neon in many environments
+    rejectUnauthorized: false
   }
 });
 const adapter = new PrismaPg(pool);
