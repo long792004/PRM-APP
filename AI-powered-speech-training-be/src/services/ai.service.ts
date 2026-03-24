@@ -4,7 +4,13 @@ import * as fs from 'fs';
 // ─── Khởi tạo Google Gemini client ────────────────────────────────────────────
 // Nếu người dùng gán key vào OPENAI_API_KEY thay vì GEMINI_API_KEY, 
 // ta vẫn lấy được tự động nhờ biến môi trường
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '');
+const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
+if (!apiKey) {
+    console.error('❌ Error: GEMINI_API_KEY or OPENAI_API_KEY is not defined in environment variables.');
+    // Don't exit immediately, but the service will fail when called
+}
+
+const genAI = new GoogleGenerativeAI(apiKey || '');
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
