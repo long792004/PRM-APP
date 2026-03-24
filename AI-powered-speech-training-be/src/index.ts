@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 const envConfig = dotenv.config();
 if (envConfig.error) {
     console.warn('⚠️  Warning: Cannot find .env file. Please create it from .env.example');
