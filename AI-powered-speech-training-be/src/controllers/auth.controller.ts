@@ -18,7 +18,11 @@ export const register = async (req: Request, res: Response) => {
             return;
         }
         console.error('Register error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            details: error.message,
+            stack: error.stack
+        });
     }
 };
 
@@ -39,6 +43,10 @@ export const login = async (req: Request, res: Response) => {
             return;
         }
         console.error('Login error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            error: 'Internal server error', 
+            details: error.message,
+            stack: error.stack 
+        });
     }
 };

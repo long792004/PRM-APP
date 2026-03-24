@@ -20,9 +20,7 @@
   "include": [
     "src/**/*",
     "prisma/**/*",
-    "test_*.ts",
-    "verify_*.ts",
-    "list_models.ts"
+    "*.ts"
   ],
   "exclude": [
     "node_modules"
