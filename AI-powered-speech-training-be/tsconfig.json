@@ -14,12 +14,15 @@
     "strict": true,
     "skipLibCheck": true,
     "rootDir": ".",
-    "outDir": "dist"
+    "outDir": "dist",
+    "ignoreDeprecations": "5.0"
   },
   "include": [
     "src/**/*",
     "prisma/**/*",
-    "*.ts"
+    "test_*.ts",
+    "verify_*.ts",
+    "list_models.ts"
   ],
   "exclude": [
     "node_modules"
