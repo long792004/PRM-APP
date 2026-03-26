@@ -43,7 +43,7 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,24 +137,44 @@ class _TopicFeedScreenState extends State<TopicFeedScreen> {
                   ),
                 );
               }
-              return RefreshIndicator(
-                onRefresh: () async => setState(() => _loadExams()),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 400,
-                    childAspectRatio: isMobile ? 0.8 : 1.2,
-                    crossAxisSpacing: 20,
-                    mainAxisSpacing: 20,
-                  ),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final exam = filtered[index];
-                    return _ExamCard(
-                      exam: exam,
-                      onTap: () => widget.onSelectTopic(exam),
-                    );
-                  },
-                ),
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  int crossAxisCount;
+                  if (width >= 1200) {
+                    crossAxisCount = 4;
+                  } else if (width >= 800) {
+                    crossAxisCount = 3;
+                  } else if (width >= 600) {
+                    crossAxisCount = 2;
+                  } else {
+                    crossAxisCount = 1;
+                  }
+
+                  double spacing = 20.0;
+                  double itemWidth = ((width - (crossAxisCount - 1) * spacing) / crossAxisCount).floorToDouble();
+
+                  return RefreshIndicator(
+                    onRefresh: () async => setState(() => _loadExams()),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 24, top: 4),
+                      child: Wrap(
+                        spacing: spacing,
+                        runSpacing: spacing,
+                        children: filtered.map((exam) {
+                          return SizedBox(
+                            width: itemWidth,
+                            child: _ExamCard(
+                              exam: exam,
+                              onTap: () => widget.onSelectTopic(exam),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
@@ -276,7 +296,7 @@ class _ExamCard extends StatelessWidget {
                 )).toList(),
               ),
               
-              const Spacer(),
+              const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 8),
 

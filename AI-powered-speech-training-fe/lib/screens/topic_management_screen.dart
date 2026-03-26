@@ -81,7 +81,7 @@ class _TopicManagementScreenState extends State<TopicManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +281,7 @@ class _ExamManagementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
     
     // Safety check cho ngày tạo
     String dateStr = '';
@@ -322,12 +322,16 @@ class _ExamManagementCard extends StatelessWidget {
                         spacing: 12,
                         runSpacing: 8,
                         children: [
-                          Text(
-                            exam.title,
-                            style: TextStyle(
-                              fontSize: isMobile ? 18 : 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.gray900,
+                          Flexible(
+                            child: Text(
+                              exam.title,
+                              style: TextStyle(
+                                fontSize: isMobile ? 18 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.gray900,
+                              ),
+                              softWrap: true,
+                              overflow: TextOverflow.visible,
                             ),
                           ),
                           Container(
@@ -381,17 +385,17 @@ class _ExamManagementCard extends StatelessWidget {
                           color: AppColors.gray100,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.check_circle, size: 14, color: AppColors.success),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${sec.skill} (${sec.questions.length} câu hỏi)',
-                              style: const TextStyle(fontSize: 12, color: AppColors.gray700),
-                            ),
-                          ],
-                        ),
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              const Icon(Icons.check_circle, size: 14, color: AppColors.success),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${sec.skill} (${sec.questions.length} câu hỏi)',
+                                style: const TextStyle(fontSize: 12, color: AppColors.gray700),
+                              ),
+                            ],
+                          ),
                       ))
                   .toList(),
             ),

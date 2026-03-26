@@ -21,7 +21,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,56 +49,67 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             final totalTopics = snapshot.data?['totalTopics'] ?? '-';
             final totalRecordings = snapshot.data?['totalRecordings'] ?? '-';
 
-            return GridView.count(
-              crossAxisCount: isMobile ? 2 : 4,
-              shrinkWrap: true,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: isMobile ? 1.5 : 2,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _MetricCard(
-                  title: 'Tổng Users',
-                  value: snapshot.connectionState == ConnectionState.waiting
-                      ? '...'
-                      : '$totalUsers',
-                  change: 'Tổng số học viên',
-                  icon: Icons.people_outline,
-                  color: AppColors.primary,
-                  isPositive: true,
-                ),
-                _MetricCard(
-                  title: 'Tổng Topics',
-                  value: snapshot.connectionState == ConnectionState.waiting
-                      ? '...'
-                      : '$totalTopics',
-                  change: 'Đang hoạt động',
-                  icon: Icons.book_outlined,
-                  color: AppColors.secondary,
-                  isPositive: true,
-                ),
-                _MetricCard(
-                  title: 'Tổng bài luyện',
-                  value: snapshot.connectionState == ConnectionState.waiting
-                      ? '...'
-                      : '$totalRecordings',
-                  change: 'Tất cả thời gian',
-                  icon: Icons.trending_up,
-                  color: AppColors.success,
-                  isPositive: true,
-                ),
-                _MetricCard(
-                  title: 'Refresh',
-                  value: '↻',
-                  change: 'Nhấn để tải lại',
-                  icon: Icons.refresh,
-                  color: AppColors.warning,
-                  isPositive: true,
-                  onTap: () => setState(() {
-                    _statsFuture = ApiService.getAdminStats();
-                  }),
-                ),
-              ],
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                int crossAxisCount = width >= 800 ? 4 : 2;
+                double spacing = 16.0;
+                double itemWidth = ((width - (crossAxisCount - 1) * spacing) / crossAxisCount).floorToDouble();
+
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: [
+                    SizedBox(
+                      width: itemWidth,
+                      child: _MetricCard(
+                        title: 'Tổng Users',
+                        value: snapshot.connectionState == ConnectionState.waiting ? '...' : '$totalUsers',
+                        change: 'Tổng số học viên',
+                        icon: Icons.people_outline,
+                        color: AppColors.primary,
+                        isPositive: true,
+                      ),
+                    ),
+                    SizedBox(
+                      width: itemWidth,
+                      child: _MetricCard(
+                        title: 'Tổng Topics',
+                        value: snapshot.connectionState == ConnectionState.waiting ? '...' : '$totalTopics',
+                        change: 'Đang hoạt động',
+                        icon: Icons.book_outlined,
+                        color: AppColors.secondary,
+                        isPositive: true,
+                      ),
+                    ),
+                    SizedBox(
+                      width: itemWidth,
+                      child: _MetricCard(
+                        title: 'Tổng bài luyện',
+                        value: snapshot.connectionState == ConnectionState.waiting ? '...' : '$totalRecordings',
+                        change: 'Tất cả thời gian',
+                        icon: Icons.trending_up,
+                        color: AppColors.success,
+                        isPositive: true,
+                      ),
+                    ),
+                    SizedBox(
+                      width: itemWidth,
+                      child: _MetricCard(
+                        title: 'Refresh',
+                        value: '↻',
+                        change: 'Nhấn để tải lại',
+                        icon: Icons.refresh,
+                        color: AppColors.warning,
+                        isPositive: true,
+                        onTap: () => setState(() {
+                          _statsFuture = ApiService.getAdminStats();
+                        }),
+                      ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
@@ -166,7 +177,7 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Container(
       decoration: BoxDecoration(
@@ -211,7 +222,7 @@ class _MetricCard extends StatelessWidget {
                 ),
               ],
             ),
-            const Spacer(),
+            const SizedBox(height: 16),
             Text(
               value,
               style: TextStyle(
@@ -265,7 +276,7 @@ class _WeeklyActivityChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return BarChart(
       BarChartData(

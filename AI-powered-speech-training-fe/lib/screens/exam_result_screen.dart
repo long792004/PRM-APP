@@ -23,7 +23,7 @@ class ExamResultScreen extends StatelessWidget {
     final List<String> strengths = List<String>.from(feedback['strengths'] ?? []);
 
     final String title = resultData['topicTitle'] ?? 'Detailed Evaluation';
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     final Map<String, dynamic>? fullExamResults = feedback['fullExamResults'];
     final List<dynamic>? objectiveDetails = feedback['objectiveDetails'];

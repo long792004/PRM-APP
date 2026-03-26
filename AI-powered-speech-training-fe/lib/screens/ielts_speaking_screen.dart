@@ -198,7 +198,7 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
     
     // Define status configuration purely for UI variables
     Color statusColor = _isPreparing ? AppColors.warning : (_isRecording ? AppColors.error : AppColors.success);
@@ -288,69 +288,70 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
                 
                 // Enhanced Cue Card
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.06),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
-                          spreadRadius: 0,
-                        ),
-                        BoxShadow(
-                          color: AppColors.gray200.withOpacity(0.5),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Card Header
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryBg.withOpacity(0.5),
-                              border: const Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.primary.withOpacity(0.1),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(Icons.assignment_ind_rounded, color: AppColors.primary, size: 22),
-                                ),
-                                const SizedBox(width: 16),
-                                const Text(
-                                  'Candidate Task Card',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.gray900,
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                              ],
-                            ),
+                  child: SingleChildScrollView(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.06),
+                            blurRadius: 30,
+                            offset: const Offset(0, 10),
+                            spreadRadius: 0,
                           ),
-                          // Card Body
-                          Expanded(
-                            child: SingleChildScrollView(
+                          BoxShadow(
+                            color: AppColors.gray200.withOpacity(0.5),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Card Header
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryBg.withOpacity(0.5),
+                                border: const Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withOpacity(0.1),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(Icons.assignment_ind_rounded, color: AppColors.primary, size: 22),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Text(
+                                    'Candidate Task Card',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.gray900,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Card Body
+                            Padding(
                               padding: const EdgeInsets.all(28.0),
                               child: Text(
                                 widget.prompt,
@@ -363,8 +364,8 @@ class _IeltsSpeakingScreenState extends State<IeltsSpeakingScreen> with SingleTi
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

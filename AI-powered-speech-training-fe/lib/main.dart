@@ -233,7 +233,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     // Login screen
     if (_currentRole == null) {
@@ -251,8 +251,8 @@ class _MainScreenState extends State<MainScreen> {
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
                     colors: [AppColors.primary, AppColors.secondary],
                   ),
                   shape: BoxShape.circle,
@@ -264,18 +264,22 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AI Speaking Practice',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'User Mode',
-                    style: TextStyle(fontSize: 11, color: AppColors.gray600),
-                  ),
-                ],
+              const Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'AI Speaking Practice',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'User Mode',
+                      style: TextStyle(fontSize: 11, color: AppColors.gray600),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -348,10 +352,10 @@ class _MainScreenState extends State<MainScreen> {
           title: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
                     colors: [AppColors.secondary, Colors.pink],
                   ),
                   shape: BoxShape.circle,
@@ -359,22 +363,26 @@ class _MainScreenState extends State<MainScreen> {
                 child: const Icon(
                   Icons.settings_rounded,
                   color: AppColors.white,
-                  size: 24,
+                  size: 20,
                 ),
               ),
-              const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AI Speaking Practice',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'Admin Panel',
-                    style: TextStyle(fontSize: 11, color: AppColors.gray600),
-                  ),
-                ],
+              const SizedBox(width: 10),
+              const Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'AI Speaking Practice',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Admin Panel',
+                      style: TextStyle(fontSize: 10, color: AppColors.gray600),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

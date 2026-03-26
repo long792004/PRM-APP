@@ -51,7 +51,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return FutureBuilder<List<Recording>>(
       future: _historyFuture,
@@ -91,19 +91,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(height: 24),
 
             // Stats
-            GridView.count(
-              crossAxisCount: isMobile ? 2 : 4,
-              shrinkWrap: true,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: isMobile ? 1.5 : 2,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _StatCard(title: 'Tổng bài luyện', value: totalRecordings.toString(), icon: Icons.book_outlined, color: AppColors.primary),
-                _StatCard(title: 'Điểm TB', value: avgScore.toStringAsFixed(1), icon: Icons.star_outline, color: AppColors.warning),
-                _StatCard(title: 'Hôm nay', value: todayRecordings.toString(), icon: Icons.today_outlined, color: AppColors.success),
-                _StatCard(title: 'Tổng thời gian', value: '${totalMinutes}m', icon: Icons.timer_outlined, color: AppColors.secondary),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                int crossAxisCount = width >= 800 ? 4 : 2;
+                double spacing = 16.0;
+                double itemWidth = ((width - (crossAxisCount - 1) * spacing) / crossAxisCount).floorToDouble();
+
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: [
+                    SizedBox(width: itemWidth, child: _StatCard(title: 'Tổng bài luyện', value: totalRecordings.toString(), icon: Icons.book_outlined, color: AppColors.primary)),
+                    SizedBox(width: itemWidth, child: _StatCard(title: 'Điểm TB', value: avgScore.toStringAsFixed(1), icon: Icons.star_outline, color: AppColors.warning)),
+                    SizedBox(width: itemWidth, child: _StatCard(title: 'Hôm nay', value: todayRecordings.toString(), icon: Icons.today_outlined, color: AppColors.success)),
+                    SizedBox(width: itemWidth, child: _StatCard(title: 'Tổng thời gian', value: '${totalMinutes}m', icon: Icons.timer_outlined, color: AppColors.secondary)),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 24),
 
@@ -175,7 +180,7 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Container(
       decoration: BoxDecoration(
@@ -194,7 +199,7 @@ class _StatCard extends StatelessWidget {
         padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,6 +223,7 @@ class _StatCard extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
             Text(
               value,
               style: TextStyle(
@@ -243,7 +249,7 @@ class _RecordingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
     final date = DateTime.parse(recording.createdAt);
     final dateStr = DateFormat('HH:mm dd/MM/yyyy').format(date);
     final durationStr =

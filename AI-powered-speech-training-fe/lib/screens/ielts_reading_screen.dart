@@ -72,7 +72,7 @@ class _IeltsReadingScreenState extends State<IeltsReadingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    final isMobile = MediaQuery.of(context).size.width < 900;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
